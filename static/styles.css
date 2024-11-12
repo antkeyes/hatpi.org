@@ -7,6 +7,7 @@
 
 /* full-width, fixed height navigation bar */
 #navbar {
+    justify-content: flex-start;
     width: 100%;
     height: 80px;
     background-color: black;
@@ -15,21 +16,36 @@
     padding: 0 20px;
 }
 
+/* styling for ihu logo in navbar */
+#navbar-ihu-logo {
+    height: 60px;
+    cursor: pointer;
+    transform: rotate(40deg);
+    margin-right: auto;
+    margin-left: 10px;
+    transition: transform 0.3s ease;
+}
+
+/* ratate ihu on hover */
+#navbar-ihu-logo:hover {
+    transform: rotate(10deg);
+}
+
 /* styling for the hamburger menu */
-#hamburger-icon {
+/* #hamburger-icon {
     cursor: pointer;
     display: flex;
     flex-direction: column;
     justify-content: space-around;
     height: 25px;
-}
+} */
 
 /* each bar in the hamburger */
-#hamburger-icon .bar {
+/* #hamburger-icon .bar {
     width: 30px;
     height: 3px;
     background-color: #F9F4ED;
-}
+} */
 
 /* main content styling */
 main {
@@ -46,4 +62,40 @@ main {
     height: 600px; /* fixed height */
     object-fit: cover; /* ensure image scales while keeping fixed height */
     display: block; /* remove any extra space below the image */
+}
+
+/* container for header image and slogan text overlay */
+#image-container {
+    position: relative;
+    width: 100%;
+    height: 600px;
+    overflow: hidden;
+}
+
+/* overlay slogan text container with grid layout */
+.text-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    display: grid;
+    grid-template-columns: 1fr 1fr; /* two equal columns, slogan is in left */
+    align-items: center;
+    color: #F9F4ED; /* text color */
+    background-color: rgba(0, 0, 0, 0.3); /* optional dark overlay */
+}
+
+/* slogan text in the first column */
+.text-column {
+    padding-left: 100px; /* optional padding */
+}
+
+/* font for slogan text */
+.text-column h1, .text-column p {
+    font-family: Arial, Helvetica, sans-serif;
+}
+
+.text-column h1 {
+    font-size: 4em; /* make HATPI title large */
 }

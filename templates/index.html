@@ -9,16 +9,29 @@
 <body>
     <!-- Navigation bar -->
      <nav id="navbar">
-        <!-- hamburger icon for navigation -->
-         <div id="hamburger-icon" onclick="toggleMenu()">
+            <!-- <div class="bar"></div>
             <div class="bar"></div>
-            <div class="bar"></div>
-            <div class="bar"></div>
-         </div>
+            <div class="bar"></div> -->
+            <img src="/static/images/ihu1.png" alt="IHU" id="navbar-ihu-logo" onclick="toggleMenu()">
+
+         <!-- ihu in navbar -->
+         <!-- <img src="/static/images/ihu1.png" alt="IHU" id="navbar-ihu-logo"> -->
      </nav>
 
-     <!-- full-width image below the navbar of hatpi mosaic -->
-      <img src="/static/images/panorama_highres _cropped.jpg" alt="Project Banner Image" id="full-width-image">
+     <!-- container with header image and HATPI slogan -->
+     <div id="image-container">
+        <!-- full-width image below the navbar of hatpi mosaic -->
+        <img src="/static/images/panorama_highres _cropped.jpg" alt="Project Banner Image" id="full-width-image">
+
+        <!-- overlay text in css grid layout -->
+         <div class="text-overlay">
+            <div class="text-column">
+                <h1>HATPI</h1>
+                <p>A new lens on the universe</p>
+                <p>High-precision imaging of the full night sky</p>
+            </div>
+         </div>
+     </div>
 
     <main>
         <p>This is the landing page for the HATPI project.</p>
