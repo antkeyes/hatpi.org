@@ -9,19 +9,14 @@
 <body>
     <!-- Navigation bar -->
      <nav id="navbar">
-            <!-- <div class="bar"></div>
-            <div class="bar"></div>
-            <div class="bar"></div> -->
+            <!-- ihu in navbar -->
             <img src="/static/images/ihu1.png" alt="IHU" id="navbar-ihu-logo" onclick="toggleMenu()">
-
-         <!-- ihu in navbar -->
-         <!-- <img src="/static/images/ihu1.png" alt="IHU" id="navbar-ihu-logo"> -->
      </nav>
 
      <!-- container with header image and HATPI slogan -->
      <div id="image-container">
         <!-- full-width image below the navbar of hatpi mosaic -->
-        <img src="/static/images/panorama_highres _cropped.jpg" alt="Project Banner Image" id="full-width-image">
+        <img src="/static/images/mosaic_highres_cropped.jpg" alt="Project Banner Image" id="full-width-image">
 
         <!-- overlay text in css grid layout -->
          <div class="text-overlay">
@@ -34,7 +29,29 @@
      </div>
 
     <main>
-        <p>This is the landing page for the HATPI project.</p>
+        <!-- about section -->
+        <section id="about">
+            <!-- left column: heading and paragraph text -->
+             <div class="about-column">
+                <h1>The HATPI Project</h1>
+                <p>In a single 30 second exposure, the HATPI instrument is able
+                    to observe the majority of the night sky visible from its observing 
+                    site in Chile. This is accomplished by 64 carefully aligned instrument-holder 
+                    units (IHUs; including lenses, CCD cameras, focusers, and fine-pointing
+                    mechanisms) to a large mount. The mount tracks stars as they rise and set
+                    during the night while the telescope keeps imaging, effectively creating a movie
+                    of the night sky.
+                </p>
+             </div>
+
+             <!-- right column: mosaic and mosaic details -->
+             <div class="about-column">
+                <a href="/static/images/mosaic_highres.jpg" target="_blank">
+                    <img src="/static/images/mosaic_lowres_cropped.png" alt="High Res Mosaic" class="mosaic-image">
+                </a>
+                <p class="centered-text">Mosaic of the night sky.</p>
+             </div>
+        </section>
     </main>
 
     <script src="/static/script.js"></script>
