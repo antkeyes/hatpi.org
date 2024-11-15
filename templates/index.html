@@ -9,14 +9,23 @@
 <body>
     <!-- Navigation bar -->
      <nav id="navbar">
-            <!-- ihu in navbar -->
-            <img src="/static/images/ihu1.png" alt="IHU" id="navbar-ihu-logo" onclick="toggleMenu()">
+        <!-- hamburger icon for navigation -->
+        <div id="hamburger-icon" onclick="toggleMenu()">
+            <div class="bar"></div>
+            <div class="bar"></div>
+            <div class="bar"></div>
+         </div>
      </nav>
 
      <!-- container with header image and HATPI slogan -->
      <div id="image-container">
         <!-- full-width image below the navbar of hatpi mosaic -->
-        <img src="/static/images/mosaic_highres_cropped.jpg" alt="Project Banner Image" id="full-width-image">
+        <!-- timelapse banner movie -->
+         <video id="timelapse-video" autoplay muted loop>
+            <source src="/static/images/timelapse_loop.webm" type="video/webm">
+            Your browser does not support the video tag
+         </video>
+        <!-- <img src="/static/images/instrument_night.JPG" alt="Project Banner Image" id="full-width-image"> -->
 
         <!-- overlay text in css grid layout -->
          <div class="text-overlay">
@@ -26,7 +35,14 @@
                 <p>High-precision imaging of the full night sky</p>
             </div>
          </div>
-     </div>
+            <!-- navigation links under the banner image -->
+            <nav id="bottom-links">
+                <a href="/about.html">About</a>
+                <a href="/light_curves.html">Light Curves</a>
+                <a href="/publications.html">Publications</a>
+            </nav>  
+    </div>
+
 
     <main>
         <!-- about section -->
