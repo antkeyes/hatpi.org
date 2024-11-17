@@ -4,7 +4,10 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Welcome to HATPI</title>
+    <link href="https://fonts.googleapis.com/css2?family=Open+Sans:wght@300;400&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="/static/styles.css">
+    <link rel="icon" href="/static/images/favicon.png" type="image/x-icon">
+
 </head>
 <body>
     <!-- Navigation bar -->
@@ -47,27 +50,44 @@
     <main>
         <!-- about section -->
         <section id="about">
-            <!-- left column: heading and paragraph text -->
-             <div class="about-column">
-                <h1>The HATPI Project</h1>
-                <p>In a single 30 second exposure, the HATPI instrument is able
-                    to observe the majority of the night sky visible from its observing 
-                    site in Chile. This is accomplished by 64 carefully aligned instrument-holder 
-                    units (IHUs; including lenses, CCD cameras, focusers, and fine-pointing
-                    mechanisms) to a large mount. The mount tracks stars as they rise and set
-                    during the night while the telescope keeps imaging, effectively creating a movie
-                    of the night sky.
-                </p>
-             </div>
-
-             <!-- right column: mosaic and mosaic details -->
-             <div class="about-column">
+            <!-- left column: mosaic -->
+            <div class="about-column">
                 <a href="/static/images/mosaic_highres.jpg" target="_blank">
                     <img src="/static/images/mosaic_lowres_cropped.png" alt="High Res Mosaic" class="mosaic-image">
                 </a>
-                <p class="centered-text">Mosaic of the night sky.</p>
+            </div>
+            <!-- right column: header and description -->
+             <div class="about-column-right">
+                <h1>The HATPI Project<span class="vertical-pipe-h1"></span><a href="https://hatpi.org/about" class="learn-more">Learn More</a> </h1>
+                <p>In a single 30 second exposure, the HATPI instrument<br>observes 180 
+                    degrees of the night sky from its observing<br>site in the Atacama Desert <a href="https://maps.app.goo.gl/gZSJrSEGmgmbA47X9" class="coordinate-link"> | -29.010486, -70.701080</a>
+                </p>
+                <img src="/static/images/three_about_pics.jpeg" alt="three about pics" class="three-about-pics">
+                
              </div>
         </section>
+
+        <!-- light curves section on home page -->
+        <section id="light-curves">
+            <h1>Light Curves</h1>
+            <a href="https://hatpi.org/light_curves">
+                <img src="/static/images/light_curve_website.jpg" alt="Light curves website" class="light-curves-image">
+            </a>
+            <a href="https://hatpi.org/light_curves" class="light-curves-button">Visit Page</a>
+        </section>
+
+        <!-- publications section on home page -->
+        <section id="publications">
+            <h1>Publications</h1>
+            <h2>coming soon</h2>
+            <a href="https://hatpi.org/publications" class="publications-button">View all</a>
+        </section>
+
+        <!-- team section on home page -->
+        <section id="team">
+            <h1>Team</h1>
+        </section>
+
     </main>
 
     <script src="/static/script.js"></script>
