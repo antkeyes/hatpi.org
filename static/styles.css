@@ -232,7 +232,13 @@ main {
     margin-bottom: 15px;
     cursor: pointer;
     padding: 30px;
+    transition: transform 0.3s ease; /* Smooth hover effect */
 }
+
+.mosaic-image:hover {
+    transform: scale(1.05); /* Slightly enlarge image on hover */
+}
+
 
 .about-column-right h1 {
     font-size: 2em;
@@ -317,11 +323,9 @@ main {
     font-size: .6em;
 }
 
-.light-curves-button:hover {
-    background-color: #555EB0; /* Slightly darker shade on hover */
-    border: 1px solid black;   /* Add a black border on hover */
-    color: #FFFFFF;            /* Keep text color white */
-}
+
+
+
 
 #publications {
     max-width: 1000px;
@@ -351,16 +355,235 @@ main {
     max-width: 1000px;
     margin: 0 auto;
     padding-top: 80px;
-    padding-bottom: 80px;
+    padding-bottom: 100px;
     padding-left: 40px;
     padding-right: 40px;
     text-align: left;
     border-bottom: 2px solid #ccc;
-}
-
-#team h1 {
-    font-size: 2em;
     font-family: 'Open Sans', sans-serif;
 }
 
 
+#team h1 {
+    font-size: 2em;
+    font-weight: bold;
+}
+
+/* Common styling for grid rows */
+.team-grid-row {
+    display: grid;
+    max-width: 550px;
+    margin: 0 auto;
+    gap: 0px; /* Space between items */
+    margin-bottom: 20px; /* Space between rows */
+
+}
+
+/* First row: 3 columns */
+.team-grid-row:first-of-type {
+    grid-template-columns: repeat(3, 1fr); /* Three equal columns */
+    justify-content: center;
+    margin-top: 75px;
+    margin-bottom: 30px;
+}
+
+/* Second row: 2 columns */
+.team-grid-row:last-of-type {
+    grid-template-columns: repeat(2, 1fr); /* Two equal columns */
+    max-width: 367px;
+    margin: 0 auto;
+}
+
+/* Individual team member card */
+.team-member {
+    text-align: center;
+}
+
+/* Team member images */
+.team-member img {
+    width: 150px;
+    height: 150px;
+    border-radius: 50%; /* Makes the images round */
+    object-fit: cover;  /* Ensures the image fits well */
+    margin-bottom: 0px;
+    border: 2px solid #ccc; /* Optional: Add a border around images */
+}
+
+/* Team member name */
+.team-name {
+    font-size: 1.2em;
+    font-weight: bold;
+}
+
+/* Team member role */
+.team-role {
+    font-size: .9em;
+    color: #696969; /* Optional: Light gray color for the role */
+}
+
+/* Make the whole card clickable */
+.team-member-link {
+    text-decoration: none; /* Remove underline from links */
+    color: inherit;        /* Inherit text color */
+    display: block;        /* Ensure the link behaves like a block */
+}
+
+/* Optional: Add hover effect */
+.team-member-link:hover .team-member {
+    transform: scale(1.02); /* Slight zoom effect on hover */
+    transition: transform 0.2s ease-in-out;
+}
+
+
+
+
+
+
+#acknowledgments {
+    max-width: 1000px;
+    margin: 0 auto;
+    padding-top: 80px;
+    padding-bottom: 80px;
+    padding-left: 40px;
+    padding-right: 40px;
+    text-align: left;
+    font-family: 'Open Sans', sans-serif;
+}
+
+#acknowledgments p {
+    font-size: .9em;
+    font-family: 'Open Sans', sans-serif; 
+    font-weight: 100;
+}
+
+
+.acknowledgment-container {
+    text-align: left; /* Align the text to the left */
+}
+
+.acknowledgment-container h1 {
+    margin: 0;
+    font-size: 2em; /* Adjust as needed */
+}
+
+.acknowledgment-subline {
+    display: flex;
+    align-items: center; /* Align the pipe and paragraph vertically */
+    height: 35px;
+    gap: 0px; /* Space between the pipe and the text */
+    padding-left: 10px;
+    margin-top: 5px;
+    border-left: 2px solid #333333;
+}
+
+
+.acknowledgment-container p {
+    margin: 0;
+    font-size: 1em; 
+}
+
+
+.vertical-pipe-acknowledgments {
+    display: inline-block;
+    width: 2px;
+    height: 1.2em;
+    background-color: #333333;
+    vertical-align: middle;
+    margin: 0 15px;
+}
+
+
+.funding-logos {
+    max-width: 650px; /* Set a maximum width for the container */
+    margin: 40px auto; /* Center the container and add spacing */
+    margin-top: 100px;
+    display: grid;
+    gap: 20px; /* Spacing between rows */
+}
+
+.logo-row {
+    display: grid;
+    align-items: center; /* Center content vertically in rows */
+}
+
+.logo-row-1 {
+    grid-template-columns: 2fr 1fr; /* First column larger than the second */
+    gap: 10px; /* Reduce gap between columns to bring them closer */
+    justify-content: center; /* Center the entire row */
+}
+
+.logo-row-1 a:first-child img {
+    max-width: 350px; /* Make the first image larger */
+}
+
+.logo-row-1 a:last-child img {
+    max-width: 250px; /* Make the second image smaller */
+}
+
+
+.logo-row-2 {
+    grid-template-columns: 1fr; /* Single column for row 2 */
+    justify-items: center; /* Center content horizontally */
+}
+
+.logo-row img {
+    width: 100%; /* Make images responsive */
+    max-width: 300px; /* Set a maximum width for the images */
+    height: auto; /* Maintain aspect ratio */
+    transition: transform 0.3s ease; /* Smooth hover effect */
+
+}
+
+.logo-row a:hover img {
+    transform: scale(1.05); /* Slightly enlarge image on hover */
+}
+
+
+
+#page-footer {
+    background-color: black;
+    color: #646464;
+    height: 75px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-family: 'Open Sans', sans-serif;
+    font-size: 0.9em;
+    padding: 0 20px;
+    position: relative;
+}
+
+.footer-icons {
+    display: flex;
+    gap: 10px;
+    position: absolute;
+    left: 20px;
+}
+
+.footer-icon {
+    height: 35px;
+    max-width: 75px;
+    object-fit: cover;
+    cursor: pointer;
+}
+
+#page-footer p {
+    margin: 0 auto;
+    position: absolute;
+    left: 50%;
+    transform: translateX(-50%);
+}
+
+.princeton-logo {
+    position: absolute;
+    right: 20px;
+    display: flex;
+    align-items: center;
+}
+
+.princeton-logo img {
+    height: 50px;
+    width: 50px;
+    object-fit: cover;
+    cursor: pointer;
+}
