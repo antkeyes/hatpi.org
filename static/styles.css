@@ -87,36 +87,6 @@
     font-weight: bold;
 }
 
-/* style the ihu icon next to text links */
-.link-icon {
-    height: 3em;
-    width: 3em;
-    margin-left: 8px;
-    border-radius: 20px;
-    background-color: #414BB2;
-    padding: 4px;
-    transition: transform 0.3s ease;
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-}
-
-/* rotate ihus on hover */
-#bottom-links a:hover .link-icon {
-    transform: rotate(30deg);
-}
-
-
-/* hoever effect for the above links */
-#bottom-links a:hover {
-    color: white;
-}
-
-
-
-
-
-
 
 
 /* main content styling */
@@ -167,7 +137,7 @@ main {
 
 /* font for slogan text */
 .text-column h1, .text-column p {
-    font-family: 'Open Sans', sans-serif;
+    font-family: Arial, Helvetica, sans-serif;
 }
 
 .text-column h1 {
@@ -179,6 +149,7 @@ main {
     font-size: 1.3em;
     color: #FFFFFF;
     font-weight: 200;
+    font-family: 'Open Sans', sans-serif;
 }
 
 
@@ -266,6 +237,12 @@ main {
     font-family: 'Open Sans', sans-serif;
     color: #646464;
     font-size: .6em;
+    transition: transform 0.3s ease, font-size 0.3s ease; /* Smooth hover effect */
+}
+
+.learn-more:hover {
+    transform: scale(1.1); /* Slightly enlarge the text */
+    font-size: 0.7em; /* Increase font size slightly */
 }
 
 .coordinate-link {
@@ -304,6 +281,8 @@ main {
     text-align: left !important;
     font-family: 'Open Sans', sans-serif; 
     font-weight: 100;
+    margin-top: 7px;
+    margin-bottom: 40px;
 }
 
 .light-curves-image {
@@ -321,8 +300,13 @@ main {
     font-family: 'Open Sans', sans-serif;
     color: #646464;
     font-size: .6em;
+    transition: transform 0.3s ease, font-size 0.3s ease; /* Smooth hover effect */
 }
 
+.visit-page:hover {
+    transform: scale(1.1); /* Slightly enlarge the text */
+    font-size: 0.7em; /* Increase font size slightly */
+}
 
 
 
@@ -349,6 +333,12 @@ main {
     font-family: 'Open Sans', sans-serif;
     color: #646464;
     font-size: .6em;
+    transition: transform 0.3s ease, font-size 0.3s ease; /* Smooth hover effect */
+}
+
+.coming-soon:hover {
+    transform: scale(1.1); /* Slightly enlarge the text */
+    font-size: 0.7em; /* Increase font size slightly */
 }
 
 #team {
