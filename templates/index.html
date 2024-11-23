@@ -11,14 +11,14 @@
 </head>
 <body>
     <!-- Navigation bar -->
-     <nav id="navbar">
+     <!-- <nav id="navbar"> -->
         <!-- hamburger icon for navigation -->
-        <div id="hamburger-icon" onclick="toggleMenu()">
+        <!-- <div id="hamburger-icon" onclick="toggleMenu()">
             <div class="bar"></div>
             <div class="bar"></div>
             <div class="bar"></div>
          </div>
-     </nav>
+     </nav> -->
 
      <!-- container with header image and HATPI slogan -->
      <div id="image-container">
@@ -59,10 +59,13 @@
             <!-- right column: header and description -->
              <div class="about-column-right">
                 <h1>The HATPI Project<span class="vertical-pipe-h1"></span><a href="https://hatpi.org/about" class="learn-more">Learn More</a> </h1>
-                <p>In a single 30 second exposure, the HATPI instrument<br>observes 180 
-                    degrees of the night sky from its observing<br>site in the Atacama Desert <a href="https://maps.app.goo.gl/gZSJrSEGmgmbA47X9" class="coordinate-link"> | -29.010486, -70.701080</a>
+                <p>In a single 45 second exposure, the HATPI instrument <br>observes the full night sky, in all directions, from the<br> zenith down to an elevation angle of 35 degrees, at a <br>
+                    spatial resolution of 20 arcseconds per pixel. The key <br>science aim of HATPI is to explore the variable sky,<br> including studying astrophysical transient events (cosmic<br>
+                     explosions), transiting exoplanets, variable stars, and<br> moving objects (near-Earth asteroids). HATPI is located at <br>
+                     Las Campanas Observatory in the Atacama Desert of<br> Chile <a href="https://maps.app.goo.gl/gZSJrSEGmgmbA47X9" class="coordinate-link"> | -29.010486, -70.701080</a>
                 </p>
                 <img src="/static/images/three_about_pics.jpeg" alt="three about pics" class="three-about-pics">
+                <a href="/templates/about.html" class="photo-gallery-link">View Photo Gallery</a>
                 
              </div>
         </section>
@@ -70,7 +73,7 @@
         <!-- light curves section on home page -->
         <section id="light-curves">
             <h1>Light Curves<span class="vertical-pipe-h1"></span><a href="https://hatops.astro.princeton.edu/download_sandbox/" class="visit-page">Visit Page</a> </h1>
-            <p>Access more than a petabyte of HATPI data</p>
+            <p>Access the public HATPI database</p>
             <a href="https://hatops.astro.princeton.edu/download_sandbox/">
                 <img src="/static/images/light_curves_page.png" alt="Light curves website" class="light-curves-image">
             </a>
@@ -83,7 +86,7 @@
 
         <!-- team section on home page -->
         <section id="team">
-            <h1>Team</h1>
+            <h1>Team Members</h1>
             <!-- First row grid -->
             <div class="team-grid-row">
                 <!-- Team Member 1 -->
@@ -91,45 +94,55 @@
                     <div class="team-member">
                         <img src="/static/images/gaspar.png" alt="Person 1">
                         <p class="team-name">Gáspár Bakos</p>
-                        <p class="team-role">Project Director</p>
+                        <p class="team-role">Principal Investigator</p>
+                        <p class="team-profession">Professor</p>
                     </div>
                  </a>
 
                 <!-- Team Member 2 -->
+                <a href="https://ingenieria.uai.cl/profesor/andres-jordan/" class="team-member-link">
+                    <div class="team-member">
+                        <img src="/static/images/andres.jpg" alt="Person 2">
+                        <p class="team-name">Andrés Jordán</p>
+                        <p class="team-role">Professor</p>
+                    </div>
+                 </a>
+
+                <!-- Team Member 3 -->
                 <a href="https://www.astro.princeton.edu/~jhartman/" class="team-member-link">
                     <div class="team-member">
-                        <img src="/static/images/joel.png" alt="Person 2">
+                        <img src="/static/images/joel.png" alt="Person 3">
                         <p class="team-name">Joel D. Hartman</p>
                         <p class="team-role">Research Astronomer</p>
                     </div>
                  </a>
 
-                <!-- Team Member 3 -->
-                <a href="https://web.astro.princeton.edu/people/zoltan-csubry" class="team-member-link">
-                    <div class="team-member">
-                        <img src="/static/images/zoli.png" alt="Person 3">
-                        <p class="team-name">Zoltán Csubry</p>
-                        <p class="team-role">Professional Specialist</p>
-                    </div>
-                 </a>
             </div>
         
             <!-- Second row grid -->
             <div class="team-grid-row">
-                <!-- Team Member 4 -->
+            <!-- Team Member 4 -->
+                <a href="https://web.astro.princeton.edu/people/zoltan-csubry" class="team-member-link">
+                    <div class="team-member">
+                        <img src="/static/images/zoli.png" alt="Person 4">
+                        <p class="team-name">Zoltán Csubry</p>
+                        <p class="team-role">Professional Specialist</p>
+                    </div>
+                </a>
+                <!-- Team Member 5 -->
                 <a href="https://web.astro.princeton.edu/people/attila-b%C3%B3di" class="team-member-link">
                     <div class="team-member">
-                        <img src="/static/images/attila.png" alt="Person 3">
+                        <img src="/static/images/attila.png" alt="Person 5">
                         <p class="team-name">Attila Bódi</p>
                         <p class="team-role">Professional Specialist</p>
                     </div>
                  </a>
-                <!-- Team Member 5 -->
+                <!-- Team Member 6 -->
                 <a href="https://www.physics.ox.ac.uk/our-people/talens" class="team-member-link">
                     <div class="team-member">
-                        <img src="/static/images/geert.png" alt="Person 3">
+                        <img src="/static/images/geert.png" alt="Person 6">
                         <p class="team-name">Geert Jan Talens</p>
-                        <p class="team-role">Professional Specialist</p>
+                        <p class="team-role">Postdoctoral Research Scholar</p>
                     </div>
                  </a>
             </div>
@@ -140,30 +153,50 @@
             <div class="acknowledgment-container">
                 <h1>Acknowledgments</h1>
                 <div class="acknowledgment-subline">
-                    <p>Generous funding provided by the Packard and Moore foundations<br>Site hosting provided by Carnegie Science and Las Campanas Observatory</p>
+                    <p>Generous funding provided by the Moore, Packard, and Mt. Cuba Astronomical foundations<br>Site hosting provided by Carnegie Science and Las Campanas Observatory</p>
                 </div>
             </div>
-                     
+                        
             <!-- funding foundation logos -->
             <div class="funding-logos">
                 <!-- Row 1 -->
                 <div class="logo-row logo-row-1">
-                    <a href="https://packard.org" target="_blank">
-                        <img src="/static/images/packard.png" alt="Packard Foundation">
-                    </a>
                     <a href="https://moore.org" target="_blank">
                         <img src="/static/images/moore.png" alt="Moore Foundation">
                     </a>
+                    <a href="https://packard.org" target="_blank">
+                        <img src="/static/images/packard.png" alt="Packard Foundation">
+                    </a>
+                    <a href="https://mtcubaastrofnd.org/" target="_blank">
+                        <img src="/static/images/mt_cuba_logo.png" alt="Mt. Cuba Astronomical Foundation">
+                    </a>
                 </div>
+                
+                <!-- Horizontal bar -->
+                <div class="horizontal-bar"></div>
+
                 <!-- Row 2 -->
                 <div class="logo-row logo-row-2">
-                    <a href="https://www.lco.cl/" target="_blank">
+                    <a href="https://science.nasa.gov/planetary-defense/" target="_blank">
+                        <img src="/static/images/nasa_planetary_defense.png" alt="Nasa Planetary Defense">
+                    </a>
+                    <a href="https://lco.cl" target="_blank">
                         <img src="/static/images/lco.png" alt="Carnegie Science">
+                    </a>
+                    <a href="https://www.uai.cl/" target="_blank">
+                        <img src="/static/images/adolfo_ibanez.png" alt="Universidad Adolfo Ibanez">
+                    </a>
+                </div>
+
+                <!-- Row 3 -->
+                <div class="logo-row logo-row-3">
+                    <a href="https://web.astro.princeton.edu" target="_blank">
+                        <img src="/static/images/princeton_horizontal.jpeg" alt="Princeton Universite">
                     </a>
                 </div>
             </div>
-
         </section>
+
 
     </main>
 
