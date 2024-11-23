@@ -665,25 +665,75 @@ main {
 
 /* ABOUT PAGE */
 
+/* Top banner styling */
 #about-header {
     background-color: #191919;
     height: 50px;
     display: flex;
     align-items: center;
     padding-left: 20px;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    z-index: 20; /* Ensure it's above other content */
 }
 
-#home-link {
-    text-decoration: none;
-}
-
+/* Home icon styling */
 .home-icon {
-    height: 30px; /* Adjust as needed */
-    width: 20px; /* Adjust as needed */
+    height: 30px;
+    width: auto;
     cursor: pointer;
-    transition: transform 0.2s ease; /* Optional: Add a hover effect */
+    transition: transform 0.2s ease;
 }
 
 .home-icon:hover {
-    transform: scale(1.1); /* Optional: Slight zoom effect on hover */
+    transform: scale(1.1);
 }
+
+/* About page navigation container */
+#about-page-navigation {
+    position: fixed;
+    top: 100px; /* Push it below the black bar */
+    left: 50%;
+    transform: translateX(-50%);
+    width: 100%;
+    max-width: 1000px;
+    background-color: white;
+    z-index: 10;
+    border-bottom: 2px solid #cccccc;
+    padding: 10px 20px;
+    display: flex;
+    align-items: center;
+    justify-content: flex-start;
+}
+
+/* Navigation links */
+.about-nav-link {
+    font-family: 'Open Sans', sans-serif;
+    font-size: 1.6em;
+    color: #646464;
+    text-decoration: none;
+    transition: font-size 0.3s ease;
+}
+
+/* Active link style */
+.about-nav-link.active-link {
+    color: #333333;
+    pointer-events: none;
+}
+
+/* Hover effect for inactive links */
+.about-nav-link:hover {
+    font-size: 1.7em;
+}
+
+/* Vertical pipe styling */
+.vertical-pipe {
+    display: inline-block;
+    width: 2px;
+    height: 24px;
+    background-color: #cccccc;
+    margin: 0 20px;
+}
+
