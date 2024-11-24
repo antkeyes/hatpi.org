@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -28,20 +29,36 @@
     <main>
         <!-- The History of HATPI Section -->
         <section id="history">
-            <h1>The History of HATPI</h1>
-            <p>
-                HATPI was conceived as a revolutionary astronomical project capable of capturing the full night sky 
-                in a single 45-second exposure. The journey began with groundbreaking collaborations and generous 
-                funding from esteemed organizations.
-            </p>
+            <div class="timeline-container">
+                <div class="timeline-bar">
+                    <a href="#inception" class="timeline-year" id="year-inception">2005</a>
+                    <a href="#construction" class="timeline-year" id="year-construction">2010</a>
+                    <a href="#first-test" class="timeline-year" id="year-first-test">2015</a>
+                </div>
+            </div>
+            <div class="history-content">
+                <div id="inception">
+                    <h2>Project Inception</h2>
+                    <p>The HATPI project was conceptualized in 2005...</p>
+                </div>
+                <div id="construction">
+                    <h2>Construction Begins</h2>
+                    <p>In 2010, the construction of HATPI observatory...</p>
+                </div>
+                <div id="first-test">
+                    <h2>First Test</h2>
+                    <p>By 2015, the first test of the HATPI instrument...</p>
+                </div>
+            </div>
         </section>
+
 
         <!-- Key Science Section -->
         <section id="key-science">
             <h1>Key Science</h1>
             <p>
-                The HATPI project focuses on exploring the dynamic universe, observing phenomena such as transiting 
-                exoplanets, supernovae, variable stars, and near-Earth asteroids. Its unprecedented imaging capabilities 
+                The HATPI project focuses on exploring the dynamic universe, observing phenomena such as transiting
+                exoplanets, supernovae, variable stars, and near-Earth asteroids. Its unprecedented imaging capabilities
                 have opened up new horizons for astrophysical research.
             </p>
         </section>
@@ -50,7 +67,7 @@
         <section id="photo-gallery">
             <h1>Photo Gallery</h1>
             <p>
-                Browse through an array of captivating images showcasing the HATPI instrument, its observations, 
+                Browse through an array of captivating images showcasing the HATPI instrument, its observations,
                 and the remarkable environment of Las Campanas Observatory.
             </p>
             <div class="photo-gallery">
@@ -65,7 +82,7 @@
         document.addEventListener('DOMContentLoaded', () => {
             const navLinks = document.querySelectorAll('.about-nav-link');
             const sections = document.querySelectorAll('section');
-    
+
             // Create an IntersectionObserver to track sections
             const observer = new IntersectionObserver(
                 (entries) => {
@@ -73,7 +90,7 @@
                         const navLink = document.querySelector(
                             `.about-nav-link[href="#${entry.target.id}"]`
                         );
-    
+
                         if (entry.isIntersecting) {
                             navLinks.forEach((link) => link.classList.remove('active-link'));
                             navLink.classList.add('active-link');
@@ -82,12 +99,43 @@
                 },
                 { threshold: 0.6 } // Adjust threshold as needed
             );
-    
+
             // Observe all sections
             sections.forEach((section) => observer.observe(section));
         });
+
+        document.addEventListener("DOMContentLoaded", () => {
+            const years = document.querySelectorAll(".timeline-year");
+            const sections = document.querySelectorAll("#history .history-content > div");
+
+            const observer = new IntersectionObserver(
+                (entries) => {
+                    entries.forEach((entry) => {
+                        const yearId = `year-${entry.target.id}`;
+                        const yearElement = document.getElementById(yearId);
+
+                        if (entry.isIntersecting) {
+                            // Highlight the active year
+                            yearElement.classList.add("active");
+                        } else {
+                            // Remove the active class from non-visible years
+                            yearElement.classList.remove("active");
+                        }
+                    });
+                },
+                {
+                    root: null,
+                    threshold: 0.6, // Trigger when 60% of the section is visible
+                }
+            );
+
+            sections.forEach((section) => {
+                observer.observe(section);
+            });
+        });
+
     </script>
-    
+
 </body>
 
 
