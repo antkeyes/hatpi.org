@@ -19,7 +19,7 @@
 
     <!-- About page navigation -->
     <div id="about-page-navigation">
-        <a href="#history" id="history-link" class="about-nav-link">The History of HATPI</a>
+        <a href="#history" id="history-link" class="about-nav-link">History of HATPI</a>
         <span class="vertical-pipe"></span>
         <a href="#key-science" id="key-science-link" class="about-nav-link">Key Science</a>
         <span class="vertical-pipe"></span>
@@ -173,6 +173,10 @@
             const navLinks = document.querySelectorAll('.about-nav-link');
             const sections = document.querySelectorAll('section');
 
+            // set initial active link
+            navLinks.forEach((link) => link.classList.remove('active-link'));
+            navLinks[0].classList.add('actie-link');
+
             // Create an IntersectionObserver to track sections
             const observer = new IntersectionObserver(
                 (entries) => {
@@ -187,7 +191,7 @@
                         }
                     });
                 },
-                { threshold: 0.6 } // Adjust threshold as needed
+                { threshold: 0.4 } // Adjust threshold as needed
             );
 
             // Observe all sections

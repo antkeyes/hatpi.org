@@ -39,20 +39,29 @@ html {
 
 #timelapse-video {
     position: absolute;
-    left: 50%;                   /* Center horizontally */
-    top: 50%;                    /* Center vertically */
-    transform: translate(-50%, -50%); /* Center the video both horizontally and vertically */
-    width: 100vw;                /* full viewport width */
-    height: auto;                /* Maintain aspect ratio */
-    object-fit: cover;           /* cover the container without distortion */
-    object-position: center;     /* center the video vertically to crop evenly from top and bottom */
+    left: 50%;
+    /* Center horizontally */
+    top: 50%;
+    /* Center vertically */
+    transform: translate(-50%, -50%);
+    /* Center the video both horizontally and vertically */
+    width: 100vw;
+    /* full viewport width */
+    height: auto;
+    /* Maintain aspect ratio */
+    object-fit: cover;
+    /* cover the container without distortion */
+    object-position: center;
+    /* center the video vertically to crop evenly from top and bottom */
 }
 
 /* Media query for smaller widths to show the full video */
 @media (max-width: 1000px) {
     #timelapse-video {
-        object-position: center; /* Center video to show the full view */
-        height: auto;            /* Allow height to adjust with aspect ratio */
+        object-position: center;
+        /* Center video to show the full view */
+        height: auto;
+        /* Allow height to adjust with aspect ratio */
     }
 }
 
@@ -97,7 +106,8 @@ html {
 /* main content styling */
 main {
     padding: 20px;
-    color: #333; /* text color */
+    color: #333;
+    /* text color */
     font-family: Arial, Helvetica, sans-serif;
     text-align: center;
     margin-top: 20px;
@@ -106,9 +116,12 @@ main {
 /* full-width image styling (instrument at night) */
 #full-width-image {
     width: 100%;
-    height: 600px; /* fixed height */
-    object-fit: cover; /* ensure image scales while keeping fixed height */
-    display: block; /* remove any extra space below the image */
+    height: 600px;
+    /* fixed height */
+    object-fit: cover;
+    /* ensure image scales while keeping fixed height */
+    display: block;
+    /* remove any extra space below the image */
 }
 
 /* container for header image and slogan text overlay */
@@ -128,25 +141,31 @@ main {
     width: 100%;
     height: 100%;
     display: grid;
-    grid-template-columns: 1fr 1fr; /* two equal columns, slogan is in left */
+    grid-template-columns: 1fr 1fr;
+    /* two equal columns, slogan is in left */
     align-items: center;
-    color: #F9F4ED; /* text color */
-    background-color: rgba(0, 0, 0, 0.3); /* slight dark overlay of timelapse*/
+    color: #F9F4ED;
+    /* text color */
+    background-color: rgba(0, 0, 0, 0.3);
+    /* slight dark overlay of timelapse*/
 }
 
 /* slogan text in the first column */
 .text-column {
-    padding-left: 40px; /* optional padding */
+    padding-left: 40px;
+    /* optional padding */
     padding-bottom: 50px;
 }
 
 /* font for slogan text */
-.text-column h1, .text-column p {
+.text-column h1,
+.text-column p {
     font-family: Arial, Helvetica, sans-serif;
 }
 
 .text-column h1 {
-    font-size: 4em; /* make HATPI title large */
+    font-size: 4em;
+    /* make HATPI title large */
     font-weight: 600;
 }
 
@@ -169,10 +188,12 @@ main {
     gap: 20px;
     padding-bottom: 50px;
     max-width: 1000px;
-    margin: 0 auto; /* center container on screen */
+    margin: 0 auto;
+    /* center container on screen */
     justify-items: center;
     border-bottom: 2px solid #ccc;
-    color: #333333;  /* text color */
+    color: #333333;
+    /* text color */
 }
 
 
@@ -204,10 +225,13 @@ main {
 .photo-gallery-link {
     font-family: 'Open Sans', sans-serif;
     color: #636363;
-    text-decoration: none; /* Remove underline */
+    text-decoration: none;
+    /* Remove underline */
     padding-top: 10px;
-    font-size: 1em; /* Adjust size as needed */
-    transition: transform 0.3s ease, font-size 0.3s ease; /* Smooth hover effect */
+    font-size: 1em;
+    /* Adjust size as needed */
+    transition: transform 0.3s ease, font-size 0.3s ease;
+    /* Smooth hover effect */
 }
 
 .photo-gallery-link:hover {
@@ -222,11 +246,13 @@ main {
     margin-bottom: 15px;
     cursor: pointer;
     padding: 30px;
-    transition: transform 0.3s ease; /* Smooth hover effect */
+    transition: transform 0.3s ease;
+    /* Smooth hover effect */
 }
 
 .mosaic-image:hover {
-    transform: scale(1.05); /* Slightly enlarge image on hover */
+    transform: scale(1.05);
+    /* Slightly enlarge image on hover */
 }
 
 
@@ -256,12 +282,15 @@ main {
     font-family: 'Open Sans', sans-serif;
     color: #646464;
     font-size: .6em;
-    transition: transform 0.3s ease, font-size 0.3s ease; /* Smooth hover effect */
+    transition: transform 0.3s ease, font-size 0.3s ease;
+    /* Smooth hover effect */
 }
 
 .learn-more:hover {
-    transform: scale(1.1); /* Slightly enlarge the text */
-    font-size: 0.7em; /* Increase font size slightly */
+    transform: scale(1.1);
+    /* Slightly enlarge the text */
+    font-size: 0.7em;
+    /* Increase font size slightly */
 }
 
 .coordinate-link {
@@ -271,8 +300,10 @@ main {
     color: inherit;
     margin-left: 5px;
     font-size: .8em;
-    transition: transform 0.3s ease, font-size 0.3s ease; /* Smooth hover effect */
+    transition: transform 0.3s ease, font-size 0.3s ease;
+    /* Smooth hover effect */
 }
+
 .coordinate-link:hover {
     font-size: 0.85em;
 }
@@ -302,7 +333,7 @@ main {
 #light-curves p {
     font-size: .9em;
     text-align: left !important;
-    font-family: 'Open Sans', sans-serif; 
+    font-family: 'Open Sans', sans-serif;
     font-weight: 100;
     margin-top: 7px;
     margin-bottom: 40px;
@@ -323,12 +354,15 @@ main {
     font-family: 'Open Sans', sans-serif;
     color: #646464;
     font-size: .6em;
-    transition: transform 0.3s ease, font-size 0.3s ease; /* Smooth hover effect */
+    transition: transform 0.3s ease, font-size 0.3s ease;
+    /* Smooth hover effect */
 }
 
 .visit-page:hover {
-    transform: scale(1.1); /* Slightly enlarge the text */
-    font-size: 0.7em; /* Increase font size slightly */
+    transform: scale(1.1);
+    /* Slightly enlarge the text */
+    font-size: 0.7em;
+    /* Increase font size slightly */
 }
 
 
@@ -356,12 +390,15 @@ main {
     font-family: 'Open Sans', sans-serif;
     color: #646464;
     font-size: .6em;
-    transition: transform 0.3s ease, font-size 0.3s ease; /* Smooth hover effect */
+    transition: transform 0.3s ease, font-size 0.3s ease;
+    /* Smooth hover effect */
 }
 
 .coming-soon:hover {
-    transform: scale(1.1); /* Slightly enlarge the text */
-    font-size: 0.7em; /* Increase font size slightly */
+    transform: scale(1.1);
+    /* Slightly enlarge the text */
+    font-size: 0.7em;
+    /* Increase font size slightly */
 }
 
 
@@ -393,14 +430,16 @@ main {
     display: grid;
     max-width: 550px;
     margin: 0 auto;
-    gap: 0px; 
-    margin-bottom: 20px; /* Space between rows */
+    gap: 0px;
+    margin-bottom: 20px;
+    /* Space between rows */
 
 }
 
 /* First row: 3 columns */
 .team-grid-row:first-of-type {
-    grid-template-columns: repeat(3, 1fr); /* Three equal columns */
+    grid-template-columns: repeat(3, 1fr);
+    /* Three equal columns */
     justify-content: center;
     margin-top: 75px;
     margin-bottom: 30px;
@@ -408,7 +447,8 @@ main {
 
 /* Second row: 2 columns */
 .team-grid-row:last-of-type {
-    grid-template-columns: repeat(3, 1fr); /* Two equal columns */
+    grid-template-columns: repeat(3, 1fr);
+    /* Two equal columns */
     justify-content: center;
     /* max-width: 367px; */
     margin: 0 auto;
@@ -423,10 +463,12 @@ main {
 .team-member img {
     width: 150px;
     height: 150px;
-    border-radius: 50%; /* Makes the images round */
-    object-fit: cover;  /* Ensures the image fits well */
+    border-radius: 50%;
+    /* Makes the images round */
+    object-fit: cover;
+    /* Ensures the image fits well */
     margin-bottom: 0px;
-    border: 2px solid #ccc; 
+    border: 2px solid #ccc;
 }
 
 /* Team member name */
@@ -438,26 +480,33 @@ main {
 /* Team member role */
 .team-role {
     font-size: .9em;
-    color: #696969; /* Optional: Light gray color for the role */
+    color: #696969;
+    /* Optional: Light gray color for the role */
 }
 
 /* Make the whole card clickable */
 .team-member-link {
-    text-decoration: none; /* Remove underline from links */
-    color: inherit;        /* Inherit text color */
-    display: block;        
+    text-decoration: none;
+    /* Remove underline from links */
+    color: inherit;
+    /* Inherit text color */
+    display: block;
 }
 
 /* Add hover effect */
 .team-member-link:hover .team-member {
-    transform: scale(1.02); /* Slight zoom effect on hover */
+    transform: scale(1.02);
+    /* Slight zoom effect on hover */
     transition: transform 0.2s ease-in-out;
 }
 
 .team-profession {
-    font-size: 0.8em; /* Smaller font size */
-    color: #888;      /* Light gray color */
-    margin-top: 5px;   /* Add spacing above the profession */
+    font-size: 0.8em;
+    /* Smaller font size */
+    color: #888;
+    /* Light gray color */
+    margin-top: 5px;
+    /* Add spacing above the profession */
 }
 
 
@@ -479,25 +528,27 @@ main {
 
 #acknowledgments p {
     font-size: .9em;
-    font-family: 'Open Sans', sans-serif; 
+    font-family: 'Open Sans', sans-serif;
     font-weight: 100;
 }
 
 
 .acknowledgment-container {
-    text-align: left; 
+    text-align: left;
 }
 
 .acknowledgment-container h1 {
     margin: 0;
-    font-size: 2em; 
+    font-size: 2em;
 }
 
 .acknowledgment-subline {
     display: flex;
-    align-items: center; /* Align the pipe and paragraph vertically */
+    align-items: center;
+    /* Align the pipe and paragraph vertically */
     height: 35px;
-    gap: 0px; /* Space between the pipe and the text */
+    gap: 0px;
+    /* Space between the pipe and the text */
     padding-left: 10px;
     margin-top: 5px;
     border-left: 2px solid #333333;
@@ -506,7 +557,7 @@ main {
 
 .acknowledgment-container p {
     margin: 0;
-    font-size: 1em; 
+    font-size: 1em;
 }
 
 
@@ -521,7 +572,8 @@ main {
 
 .funding-logos {
     display: grid;
-    gap: 40px; /* Space between rows */
+    gap: 40px;
+    /* Space between rows */
     margin: 40px auto;
 }
 
@@ -538,29 +590,37 @@ main {
     max-width: 800px;
     margin: 0 auto;
     margin-left: 80px;
-    gap: 30px; /* Space between columns */
-    
+    gap: 30px;
+    /* Space between columns */
+
 }
 
-.logo-row-1 a:nth-child(2) + a {
-    margin-left: -40px; /* Remove the gap between middle and last child */
+.logo-row-1 a:nth-child(2)+a {
+    margin-left: -40px;
+    /* Remove the gap between middle and last child */
 }
 
 
 
 .logo-row-1 a:last-child img {
-    height: 150px; /* Set height to 150px */
-    width: auto; /* Maintain aspect ratio */
+    height: 150px;
+    /* Set height to 150px */
+    width: auto;
+    /* Maintain aspect ratio */
 }
 
 .logo-row-2 a:first-child img {
-    height: 150px; /* Set height to 150px */
-    width: auto; /* Maintain aspect ratio */
+    height: 150px;
+    /* Set height to 150px */
+    width: auto;
+    /* Maintain aspect ratio */
 }
 
 .logo-row-2 a:last-child img {
-    height: 150px; /* Set height to 150px */
-    width: auto; /* Maintain aspect ratio */
+    height: 150px;
+    /* Set height to 150px */
+    width: auto;
+    /* Maintain aspect ratio */
 }
 
 
@@ -569,7 +629,8 @@ main {
     width: 700px;
     height: 2px;
     background-color: #E6E6E6;
-    margin: 0 auto; /* Center the bar */
+    margin: 0 auto;
+    /* Center the bar */
 }
 
 /* Row 2: Three columns, 1fr 2fr 1fr */
@@ -578,21 +639,25 @@ main {
     grid-template-columns: 1fr 2fr 1fr;
     max-width: 600px;
     margin: 0 auto;
-    gap: 60px; /* Space between columns */
+    gap: 60px;
+    /* Space between columns */
 }
 
 /* Row 3: Single centered column */
 .logo-row-3 {
     display: grid;
     grid-template-columns: 1fr;
-    justify-content: center; /* Center the single logo */
+    justify-content: center;
+    /* Center the single logo */
     max-width: 400px;
     margin: 0 auto;
 }
 
 .logo-row-3 img {
-    width: 400px; /* Fixed width */
-    height: 30px; /* Fixed height */
+    width: 400px;
+    /* Fixed width */
+    height: 30px;
+    /* Fixed height */
     object-fit: contain;
 }
 
@@ -600,11 +665,13 @@ main {
 .logo-row img {
     max-width: 100%;
     height: auto;
-    transition: transform 0.3s ease; /* Smooth hover effect */
+    transition: transform 0.3s ease;
+    /* Smooth hover effect */
 }
 
 .logo-row a:hover img {
-    transform: scale(1.05); /* Slightly enlarge on hover */
+    transform: scale(1.05);
+    /* Slightly enlarge on hover */
 }
 
 
@@ -679,7 +746,8 @@ main {
     top: 0;
     left: 0;
     width: 100%;
-    z-index: 20; /* Ensure it's above other content */
+    z-index: 20;
+    /* Ensure it's above other content */
 }
 
 /* Home icon styling */
@@ -706,7 +774,8 @@ main {
     top: 0;
     left: 0;
     width: 100%;
-    z-index: 20; /* Ensure it's above other content */
+    z-index: 20;
+    /* Ensure it's above other content */
 }
 
 /* Home icon styling */
@@ -721,20 +790,28 @@ main {
     transform: scale(1.1);
 }
 
+
+
+
+
+
+
 /* About page navigation container */
 #about-page-navigation {
     position: fixed;
-    top: 50px; /* Directly below the black header bar */
+    top: 50px;
+    /* Directly below the black header bar */
     left: 0;
     width: 100%;
     background-color: white;
     z-index: 10;
     border-bottom: 2px solid #cccccc;
-    padding: 20px 20px;
+    padding: 30px 20px;
     display: flex;
     align-items: center;
     justify-content: flex-start;
-    box-shadow: 0px 2px 5px rgba(0, 0, 0, 0.1); /* Optional shadow for separation */
+    box-shadow: 0px 2px 5px rgba(0, 0, 0, 0.1);
+    /* Optional shadow for separation */
 }
 
 /* Navigation links */
@@ -778,10 +855,25 @@ main {
 /* Main content sections */
 section {
     max-width: 1000px;
-    margin: 0 auto 2000px; /* Adjust spacing between sections */
-    padding: 120px 20px 20px; /* Add top padding to offset navigation */
+    margin: 0 auto;
+    /* Adjust spacing between sections */
+    padding: 120px 20px 20px;
+    /* Add top padding to offset navigation */
     font-family: 'Open Sans', sans-serif;
-    border-bottom: 2px solid #cccccc; /* Optional: Add section separation */
+    border-bottom: 2px solid #cccccc;
+    /* Optional: Add section separation */
+}
+
+/* Ensure all text in these sections is left-aligned */
+#history, #key-science, #photo-gallery {
+    text-align: left;
+}
+
+
+#history {
+    margin-top: 50px;
+    position: relative;
+    max-width: 1000px !important;
 }
 
 section h1 {
@@ -818,6 +910,77 @@ section p {
 }
 
 /* Scroll margin for sections to account for fixed navigation */
-#history, #key-science, #photo-gallery {
-    scroll-margin-top: 150px; /* Ensures the content starts below the navigation */
+#history,
+#key-science,
+#photo-gallery {
+    scroll-margin-top: 150px;
+    /* Ensures the content starts below the navigation */
 }
+
+
+/* Timeline container styling */
+.timeline-container {
+    position: absolute;
+    left: -120px;
+    top: 0;
+    height: 100%;
+    width: 100px;
+    /* Width of the timeline area */
+    display: flex;
+    /* padding-top: 200px; */
+    align-items: center;
+    justify-content: flex-end;
+}
+
+/* Timeline bar styling */
+.timeline-bar {
+    position: relative;
+    width: 3px;
+    /* Thickness of the timeline bar */
+    background-color: #cccccc;
+    height: calc(100% - 300px); /* Reduce height by 300px */
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-start;
+    /* Distribute years evenly */
+    padding: 0;
+    margin: 0;
+    /* Align with the content */
+}
+
+/* Timeline year links */
+.timeline-year {
+    position: absolute;
+    transform: translateX(-50%);
+    padding: 0;
+    margin: 0;
+    font-family: 'Open Sans', sans-serif;
+    font-size: 1.2em;
+    background-color: white;
+    color: #cccccc;
+    /* Default gray */
+    text-decoration: none;
+    /* Spacing between years */
+    transition: color 0.3s ease, font-weight 0.3s ease;
+}
+
+/* Highlight active year */
+.timeline-year.active {
+    color: #333333;
+    font-weight: bold;
+}
+
+/* History section content */
+.history-content {
+    margin-left: 100px;
+    margin-top: 50px;
+    font-family: 'Open Sans', sans-serif;
+    /* Space for the timeline */
+    padding: 20px;
+}
+
+.history-content h2 {
+    margin-top: 50px;
+    font-family: 'Open Sans', sans-serif;
+}
+
