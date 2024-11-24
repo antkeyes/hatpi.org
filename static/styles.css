@@ -840,7 +840,7 @@ main {
 
 /* Styling for active and inactive links based on IntersectionObserver */
 .about-nav-link:not(.active-link) {
-    color: #cccccc;
+    color: #a4a4a4;
 }
 
 /* Vertical pipe styling */
@@ -852,6 +852,10 @@ main {
     margin: 0 20px;
 }
 
+#history-link {
+    padding-left: 150px;
+}
+
 /* Main content sections */
 section {
     max-width: 1000px;
@@ -860,8 +864,8 @@ section {
     padding: 120px 20px 20px;
     /* Add top padding to offset navigation */
     font-family: 'Open Sans', sans-serif;
-    border-bottom: 2px solid #cccccc;
-    /* Optional: Add section separation */
+    scroll-margin-top: 100px;
+
 }
 
 /* Ensure all text in these sections is left-aligned */
@@ -920,63 +924,101 @@ section p {
 
 /* Timeline container styling */
 .timeline-container {
-    position: absolute;
-    left: -120px;
-    top: 0;
-    height: 100%;
-    width: 100px;
-    /* Width of the timeline area */
-    display: flex;
-    /* padding-top: 200px; */
-    align-items: center;
-    justify-content: flex-end;
+    position: relative;
+    padding-top: 20px;
+    padding-right: 50px;
+    width: 100px; /* Adjust based on desired width */
+    flex-shrink: 0; /* Prevent the timeline from shrinking */
 }
+
 
 /* Timeline bar styling */
 .timeline-bar {
     position: relative;
-    width: 3px;
-    /* Thickness of the timeline bar */
+    width: 3px; /* Thickness of the timeline bar */
     background-color: #cccccc;
-    height: calc(100% - 300px); /* Reduce height by 300px */
-    display: flex;
-    flex-direction: column;
-    justify-content: flex-start;
-    /* Distribute years evenly */
-    padding: 0;
-    margin: 0;
-    /* Align with the content */
+    height: 100%;
+    margin-left: auto; /* Align the bar to the right within the timeline container */
 }
+
 
 /* Timeline year links */
 .timeline-year {
     position: absolute;
-    transform: translateX(-50%);
-    padding: 0;
-    margin: 0;
+    right: calc(100% + 20px); /* Position to the left of the timeline bar */
+    transform: translateY(-50%);
     font-family: 'Open Sans', sans-serif;
     font-size: 1.2em;
-    background-color: white;
-    color: #cccccc;
-    /* Default gray */
+    color: #a4a4a4; /* Default gray */
     text-decoration: none;
-    /* Spacing between years */
     transition: color 0.3s ease, font-weight 0.3s ease;
 }
+
 
 /* Highlight active year */
 .timeline-year.active {
     color: #333333;
-    font-weight: bold;
+    font-weight: 525;
+}
+
+.history-container {
+    display: flex;
+    position: relative;
 }
 
 /* History section content */
 .history-content {
-    margin-left: 100px;
-    margin-top: 50px;
+    flex: 1;
     font-family: 'Open Sans', sans-serif;
     /* Space for the timeline */
-    padding: 20px;
+    padding-left: 20px;
+}
+
+/* Container for the text and image */
+.history-section-content {
+    display: flex;
+    flex-wrap: wrap;
+    margin-top: 20px;
+    min-height: 350px;
+}
+
+/* Style for the text container */
+.history-text {
+    flex: 1 1 50%; /* Grow and shrink, basis at 50% */
+    padding: 10px;
+    box-sizing: border-box;
+}
+
+/* Style for the image container */
+.history-image {
+    flex: 1 1 50%; /* Grow and shrink, basis at 50% */
+    padding: 10px;
+    box-sizing: border-box;
+    display: flex;
+    align-items: center; /* Center the image vertically */
+    flex-direction: column;
+}
+ 
+/* Ensure images are responsive */
+.history-image img {
+    max-width: 100%;
+    height: auto;
+    border-radius: 5px; /* Optional: add rounded corners */
+}
+
+
+/* Styles for the container holding the two smaller images */
+.additional-images {
+    display: flex;
+    justify-content: space-between;
+    margin-top: 10px;
+    width: 100%;
+}
+
+.additional-images img {
+    width: 49%; /* So that two images take up approximately 100% together */
+    height: auto;
+    border-radius: 5px;
 }
 
 .history-content h2 {
