@@ -7,6 +7,7 @@
     <link rel="stylesheet" href="/static/styles.css">
     <link rel="icon" href="/static/images/favicon.png" type="image/x-icon">
 </head>
+
 <body>
     <!-- Top banner -->
     <header id="about-header">
@@ -17,12 +18,78 @@
 
     <!-- About page navigation -->
     <div id="about-page-navigation">
-        <a href="#" class="about-nav-link active-link">The History of HATPI</a>
+        <a href="#history" id="history-link" class="about-nav-link">The History of HATPI</a>
         <span class="vertical-pipe"></span>
-        <a href="#key-science" class="about-nav-link">Key Science</a>
+        <a href="#key-science" id="key-science-link" class="about-nav-link">Key Science</a>
         <span class="vertical-pipe"></span>
-        <a href="#photo-gallery" class="about-nav-link">Photo Gallery</a>
+        <a href="#photo-gallery" id="photo-gallery-link" class="about-nav-link">Photo Gallery</a>
     </div>
+
+    <main>
+        <!-- The History of HATPI Section -->
+        <section id="history">
+            <h1>The History of HATPI</h1>
+            <p>
+                HATPI was conceived as a revolutionary astronomical project capable of capturing the full night sky 
+                in a single 45-second exposure. The journey began with groundbreaking collaborations and generous 
+                funding from esteemed organizations.
+            </p>
+        </section>
+
+        <!-- Key Science Section -->
+        <section id="key-science">
+            <h1>Key Science</h1>
+            <p>
+                The HATPI project focuses on exploring the dynamic universe, observing phenomena such as transiting 
+                exoplanets, supernovae, variable stars, and near-Earth asteroids. Its unprecedented imaging capabilities 
+                have opened up new horizons for astrophysical research.
+            </p>
+        </section>
+
+        <!-- Photo Gallery Section -->
+        <section id="photo-gallery">
+            <h1>Photo Gallery</h1>
+            <p>
+                Browse through an array of captivating images showcasing the HATPI instrument, its observations, 
+                and the remarkable environment of Las Campanas Observatory.
+            </p>
+            <div class="photo-gallery">
+                <img src="/static/images/image1.jpg" alt="Gallery Image 1">
+                <img src="/static/images/image2.jpg" alt="Gallery Image 2">
+                <img src="/static/images/image3.jpg" alt="Gallery Image 3">
+            </div>
+        </section>
+    </main>
+    <!-- Script for dynamic active link -->
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const navLinks = document.querySelectorAll('.about-nav-link');
+            const sections = document.querySelectorAll('section');
+    
+            // Create an IntersectionObserver to track sections
+            const observer = new IntersectionObserver(
+                (entries) => {
+                    entries.forEach((entry) => {
+                        const navLink = document.querySelector(
+                            `.about-nav-link[href="#${entry.target.id}"]`
+                        );
+    
+                        if (entry.isIntersecting) {
+                            navLinks.forEach((link) => link.classList.remove('active-link'));
+                            navLink.classList.add('active-link');
+                        }
+                    });
+                },
+                { threshold: 0.6 } // Adjust threshold as needed
+            );
+    
+            // Observe all sections
+            sections.forEach((section) => observer.observe(section));
+        });
+    </script>
+    
 </body>
+
+
 
 </html>

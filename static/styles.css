@@ -5,6 +5,9 @@
     box-sizing: border-box;
 }
 
+html {
+    scroll-behavior: smooth;
+}
 
 
 /* full-width, fixed height navigation bar
@@ -692,20 +695,46 @@ main {
 }
 
 /* About page navigation container */
+/* Top banner styling */
+#about-header {
+    background-color: #191919;
+    height: 50px;
+    display: flex;
+    align-items: center;
+    padding-left: 20px;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    z-index: 20; /* Ensure it's above other content */
+}
+
+/* Home icon styling */
+.home-icon {
+    height: 30px;
+    width: auto;
+    cursor: pointer;
+    transition: transform 0.2s ease;
+}
+
+.home-icon:hover {
+    transform: scale(1.1);
+}
+
+/* About page navigation container */
 #about-page-navigation {
     position: fixed;
-    top: 100px; /* Push it below the black bar */
-    left: 50%;
-    transform: translateX(-50%);
+    top: 50px; /* Directly below the black header bar */
+    left: 0;
     width: 100%;
-    max-width: 1000px;
     background-color: white;
     z-index: 10;
     border-bottom: 2px solid #cccccc;
-    padding: 10px 20px;
+    padding: 20px 20px;
     display: flex;
     align-items: center;
     justify-content: flex-start;
+    box-shadow: 0px 2px 5px rgba(0, 0, 0, 0.1); /* Optional shadow for separation */
 }
 
 /* Navigation links */
@@ -714,18 +743,27 @@ main {
     font-size: 1.6em;
     color: #646464;
     text-decoration: none;
-    transition: font-size 0.3s ease;
+    transition: font-size 0.3s ease, color 0.3s ease;
 }
 
 /* Active link style */
 .about-nav-link.active-link {
     color: #333333;
-    pointer-events: none;
 }
 
 /* Hover effect for inactive links */
 .about-nav-link:hover {
     font-size: 1.7em;
+}
+
+/* Dynamic active link style */
+.about-nav-link.active-link {
+    color: #333333;
+}
+
+/* Styling for active and inactive links based on IntersectionObserver */
+.about-nav-link:not(.active-link) {
+    color: #cccccc;
 }
 
 /* Vertical pipe styling */
@@ -737,3 +775,49 @@ main {
     margin: 0 20px;
 }
 
+/* Main content sections */
+section {
+    max-width: 1000px;
+    margin: 0 auto 2000px; /* Adjust spacing between sections */
+    padding: 120px 20px 20px; /* Add top padding to offset navigation */
+    font-family: 'Open Sans', sans-serif;
+    border-bottom: 2px solid #cccccc; /* Optional: Add section separation */
+}
+
+section h1 {
+    font-size: 1.8em;
+    margin-bottom: 15px;
+    color: #333333;
+}
+
+section p {
+    font-size: 1em;
+    line-height: 1.6;
+    color: #646464;
+}
+
+/* Photo gallery styling */
+.photo-gallery {
+    display: flex;
+    gap: 20px;
+    justify-content: center;
+    margin-top: 20px;
+}
+
+.photo-gallery img {
+    max-width: 200px;
+    height: auto;
+    border: 2px solid #cccccc;
+    border-radius: 5px;
+    transition: transform 0.3s ease;
+    cursor: pointer;
+}
+
+.photo-gallery img:hover {
+    transform: scale(1.05);
+}
+
+/* Scroll margin for sections to account for fixed navigation */
+#history, #key-science, #photo-gallery {
+    scroll-margin-top: 150px; /* Ensures the content starts below the navigation */
+}
