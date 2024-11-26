@@ -43,7 +43,7 @@
 
                 <!-- History Content -->
                 <div class="history-content">
-                    <!-- Inception Section -->
+                    <!-- projject inception Section -->
                     <div>
                         <h2 id="inception">Project Inception</h2>
                         <p>
@@ -172,7 +172,7 @@
                     </div>
                 </div>
             </div>
-            <!-- Timeline Bar -->
+            
 
         </section>
 
@@ -180,25 +180,24 @@
         <section id="key-science">
             <h1>Key Science</h1>
             <p>
-                Sed ut perspiciatis unde omnis iste natus error sit voluptatem accusantium doloremque laudantium, totam
-                rem aperiam, eaque ipsa quae ab illo inventore veritatis et quasi architecto beatae vitae dicta sunt
-                explicabo. Nemo enim ipsam voluptatem quia voluptas sit aspernatur aut odit aut fugit, sed quia
-                consequuntur magni dolores eos qui ratione voluptatem sequi nesciunt. Neque porro quisquam est, qui
-                dolorem ipsum quia dolor sit amet, consectetur, adipisci velit, sed quia non numquam eius modi tempora
-                incidunt ut labore et dolore magnam aliquam quaerat voluptatem. Ut enim ad minima veniam, quis nostrum
-                exercitationem ullam corporis suscipit laboriosam, nisi ut aliquid ex ea commodi consequatur? Quis autem
-                vel eum iure reprehenderit qui in ea voluptate velit esse quam nihil molestiae consequatur, vel illum
-                qui dolorem eum fugiat quo voluptas nulla pariatur Sed ut perspiciatis unde omnis iste natus error sit
-                voluptatem accusantium doloremque laudantium, totam rem aperiam, eaque ipsa quae ab illo inventore
-                veritatis et quasi architecto beatae vitae dicta sunt explicabo. Nemo enim ipsam voluptatem quia
-                voluptas sit aspernatur aut odit aut fugit, sed quia consequuntur magni dolores eos qui ratione
-                voluptatem sequi nesciunt. Neque porro quisquam est, qui dolorem ipsum quia dolor sit amet, consectetur,
-                adipisci velit, sed quia non numquam eius modi tempora incidunt ut labore et dolore magnam aliquam
-                quaerat voluptatem. Ut enim ad minima veniam, quis nostrum exercitationem ullam corporis suscipit
-                laboriosam, nisi ut aliquid ex ea commodi consequatur? Quis autem vel eum iure reprehenderit qui in ea
-                voluptate velit esse quam nihil molestiae consequatur, vel illum qui dolorem eum fugiat quo voluptas
-                nulla pariatur
-            </p>
+              The HATPI project focuses on exploring the dynamic universe, observing phenomena such as transiting exoplanets, supernovae, variable stars, and near-Earth asteroids.
+	    </p>
+	    <h2>Transiting Exoplanets</h2>
+	    <p>
+	      By continuously monitoring a quarter of the full celestial sphere all night, every night, at high cadence, spatial resolution, and photometric precision, HATPI will be able to detect a large number of exoplanetary transit events. HATPI is an especially powerful tool for finding the infrequent transits of long period, cold Jupiters that can take years or more to orbit their stars.  
+	    </p>
+	    <h2>Transient Events</h2>
+	    <p>
+	      The high cadence and ultra-wide field-of-view of HATPI give it a unique sensitivity to fast astronomical transient events that may be missed by other time-domain surveys that observe the full sky at a much lower cadence. HATPI is expected to observe many bright transients, like nearby supernovae, Galactic novae, or kilonovae, providing valuable observations during the rise time before they are detected by other surveys.
+	    </p>
+	    <h2>Variable Stars</h2>
+	    <p>
+	      HATPI will produce long-term, high-cadence light curves for 10s of millions of stars, enabling the study of hundreds of thousands of variable stars. HATPI will be especially useful for detecting very long period stellar eclipsing binary systems, for routinely measuring the rotation periods of a vast number of sun-like stars, for detecting stellar flares, for studying stellar activity cycles, and for studying long-term mode changes in pulsating stars.
+	    </p>
+	    <h2>Moving Objects</h2>
+	    <p>
+              HATPI will observe 1000s of Near-Earth asteroids every year, and will be particularly sensitive to very small nearby asteroids that would otherwise go undetected. It will also be useful for providing light curves of asteroids that can be used to measure their rotation periods and characterize their shapes.	      
+	    </p>
         </section>
 
         <!-- Photo Gallery Section -->
@@ -239,7 +238,7 @@
                         }
                     });
                 },
-                { threshold: 0.9 } // Adjust threshold as needed
+                { threshold: 0.9 } 
             );
 
             // Observe all sections
@@ -294,11 +293,11 @@
 
         document.querySelectorAll('.timeline-year').forEach(yearLink => {
             yearLink.addEventListener('click', function (event) {
-                event.preventDefault(); // Prevent the default anchor behavior
+                event.preventDefault(); 
 
                 const targetId = this.getAttribute('href').substring(1);
                 const targetElement = document.getElementById(targetId);
-                const headerOffset = 200; // Adjust this value to match your header's height plus some padding
+                const headerOffset = 200; 
 
                 if (targetElement) {
                     const elementPosition = targetElement.getBoundingClientRect().top + window.scrollY;
