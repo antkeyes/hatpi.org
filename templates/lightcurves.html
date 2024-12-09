@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gaia Light Curve Search</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='lightcurves_styles.css') }}">
+</head>
+<body>
+    <div class="header">
+        <h1>HATPI Light Curve Search</h1>
+        <img src="{{ url_for('static', filename='images/photo_gallery/your_logo.png') }}" alt="Logo" class="logo">
+    </div>
+
+    <div class="container">
+        <div class="search-container">
+            <div class="search-header">Search HATPI Light Curves</div>
+            <form method="GET" action="{{ url_for('list_files') }}">
+                <label for="search-input" class="input-label">Gaia ID (partial or full)</label>
+                <input type="text" id="search-input" name="search"
+                       placeholder="e.g. 5782870930"
+                       value="{{ search_query if search_query is not none else '' }}">
+                <button type="submit">Search</button>
+            </form>
+            <p class="note">* Enter numeric Gaia ID only</p>
+        </div>
+
+        <div class="results-container">
+            <div class="search-header">Search Results</div>
+            <div class="results-files-container">
+                <ul>
+                    {% if search_query is not none %}
+                        {% if files %}
+                            {% for file in files %}
+                                <li class="file-item">
+                                    <label class="file-name">{{ file.file_name }}</label>
+                                    <a href="{{ url_for('download_file', file_id=file.id) }}" class="download-link">Download</a>
+                                </li>
+                            {% endfor %}
+                        {% else %}
+                            <p>No files found. Please try a different search.</p>
+                        {% endif %}
+                    {% endif %}
+                </ul>
+            </div>
+        </div>
+    </div>
+</body>
+</html>

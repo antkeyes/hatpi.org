@@ -10,33 +10,6 @@ html {
 }
 
 
-/* full-width, fixed height navigation bar
-#navbar {
-    justify-content: flex-start;
-    width: 100%;
-    height: 80px;
-    background-color: black;
-    display: flex;
-    align-items: center;
-    padding: 0 20px;
-} */
-
-
-/* styling for the hamburger menu
-#hamburger-icon {
-    cursor: pointer;
-    display: flex;
-    flex-direction: column;
-    justify-content: space-around;
-    height: 25px;
-}
-/* each bar in the hamburger */
-/* #hamburger-icon .bar {
-    width: 30px;
-    height: 3px;
-    background-color: #F9F4ED;
-}  */
-
 #timelapse-video {
     position: absolute;
     left: 50%;
@@ -817,7 +790,7 @@ main {
 /* Navigation links */
 .about-nav-link {
     font-family: 'Open Sans', sans-serif;
-    font-size: 1.6em;
+    font-size: 1.5em;
     color: #646464;
     text-decoration: none;
     transition: font-size 0.3s ease, color 0.3s ease;
@@ -867,7 +840,7 @@ section {
 }
 
 /* Ensure all text in these sections is left-aligned */
-#history, #key-science, #photo-gallery {
+#history, #key-science, #photo-gallery, #technical-specifications {
     text-align: left;
 }
 
@@ -1042,3 +1015,4 @@ section p {
     font-family: 'Open Sans', sans-serif;
 }
 
+ 
