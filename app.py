@@ -36,7 +36,7 @@ def list_files():
 
     if search_query:
         # Build the wildcard pattern
-        search_pattern = f"%{search_query}%"
+        search_pattern = f"{search_query}%"
         logging.info(f"Searching for files matching gaia_id pattern: {search_pattern}")
 
         # Perform the database query
@@ -65,5 +65,5 @@ def download_file(file_id):
         return "File not found.", 404
 
 if __name__ == '__main__':
-    # Run the flask app on port 5001 as assumed in the nginx config
+    # Run the flask app on port 5002 as assumed in the nginx config
     app.run(host='127.0.0.1', port=5002, debug=True)
