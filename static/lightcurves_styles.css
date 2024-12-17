@@ -7,6 +7,7 @@ body {
     font-family: 'Open Sans', sans-serif;
     margin: 0;
     padding: 0;
+    overflow: auto;
 }
 
 /* Header */
@@ -87,7 +88,7 @@ body {
 
 .results-files-container {
     border-radius: 5px;
-    overflow: hidden;
+    /* overflow: hidden; */
     border: 1px solid #E1DFD9;
     background-color: #2F363D;
     padding: 0;
@@ -181,6 +182,16 @@ button[disabled] {
 
 .download-link:hover {
     background: #336bbf;
+}
+
+
+#plot-container {
+    width: 100%;
+    height: 600px;
+    overflow: visible;
+    position: relative;
+    z-index: 9999;
+    background: peru;
 }
 
 /* font-family: monospace; */
