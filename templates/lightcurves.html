@@ -1,11 +1,12 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Gaia Light Curve Search</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='lightcurves_styles.css') }}">
-    
+
     <!-- Include Plotly.js -->
     <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
 
@@ -38,7 +39,7 @@
         // Function to fetch and plot the light curve
         function fetchAndPlot(gaia_id) {
             // Show a loading indicator
-            document.getElementById('plot-container').innerHTML = 'Loading plot...';
+            // document.getElementById('plot-container').innerHTML = 'Loading plot...';
 
             fetch(`/lightcurves/plot/${gaia_id}`)
                 .then(response => {
@@ -53,24 +54,25 @@
                 .then(data => {
                     if (data.error) {
                         alert(`Error: ${data.error}`);
-                        document.getElementById('plot-container').innerHTML = '';
+                        document.getElementById('plot-content').innerHTML = '';
                     } else {
                         // Clear any existing plot or messages
-                        Plotly.purge('plot-container');
+                        Plotly.purge('plot-content');
 
                         // Parse the Plotly JSON and render the plot
                         var fig = data;
-                        Plotly.newPlot('plot-container', fig.data, fig.layout);
+                        Plotly.newPlot('plot-content', fig.data, fig.layout);
                     }
                 })
                 .catch(error => {
                     console.error('Error fetching plot:', error);
                     alert(`An error occurred while fetching the plot: ${error.message}`);
-                    document.getElementById('plot-container').innerHTML = '';
+                    document.getElementById('plot-content').innerHTML = '';
                 });
         }
     </script>
 </head>
+
 <body>
     <div class="header">
         <a href="https://hatpi.org">
@@ -83,10 +85,9 @@
         <div class="search-container">
             <div class="search-header">Search HATPI Light Curves</div>
             <form method="GET" action="{{ url_for('list_files') }}">
-                <label for="search-input" class="input-label">Gaia ID (partial or full)</label>
-                <input type="text" id="search-input" name="search"
-                       placeholder="e.g. 5836683916148685056"
-                       value="{{ search_query if search_query is not none else '' }}">
+                <label for="search-input" class="input-label">Gaia DR2 ID (partial or full)</label>
+                <input type="text" id="search-input" name="search" placeholder="e.g. 5836683916148685056"
+                    value="{{ search_query if search_query is not none else '' }}">
                 <button type="submit">Search</button>
             </form>
             <!-- <p class="note">* Enter numeric Gaia ID only</p> -->
@@ -98,38 +99,42 @@
             <div class="results-files-container">
                 <ul>
                     {% if search_query is not none %}
-                        {% if files %}
-                            {% for file in files %}
-                                <li class="file-item">
-                                    <!-- Checkbox for multi-select -->
-                                    <input type="checkbox" 
-                                           id="file-{{ file['gaia_id'] }}" 
-                                           onclick="handleFileSelect('{{ url_for('download_file', gaia_id=file['gaia_id']) }}', 'file-{{ file['gaia_id'] }}')">
-                                    <!-- Clickable file name to plot -->
-                                    <a href="#" class="file-name" 
-                                       onclick="event.preventDefault(); fetchAndPlot('{{ file['gaia_id'] }}')">
-                                        {{ file.filename }}
-                                    </a>
-                                    <!-- Single-file download link (optional) -->
-                                    <!-- <a href="{{ url_for('download_file', gaia_id=file['gaia_id']) }}" class="download-link" style="margin-left:10px;">Download</a> -->
-                                </li>
-                            {% endfor %}
-                        {% else %}
-                            <p>No files found. Please try a different search.</p>
-                        {% endif %}
+                    {% if files %}
+                    {% for file in files %}
+                    <li class="file-item">
+                        <!-- Checkbox for multi-select -->
+                        <input type="checkbox" id="file-{{ file['gaia_id'] }}"
+                            onclick="handleFileSelect('{{ url_for('download_file', gaia_id=file['gaia_id']) }}', 'file-{{ file['gaia_id'] }}')">
+                        <!-- Clickable file name to plot -->
+                        <a href="#" class="file-name"
+                            onclick="event.preventDefault(); fetchAndPlot('{{ file['gaia_id'] }}')">
+                            {{ file.filename }}
+                        </a>
+                        <!-- Single-file download link (optional) -->
+                        <!-- <a href="{{ url_for('download_file', gaia_id=file['gaia_id']) }}" class="download-link" style="margin-left:10px;">Download</a> -->
+                    </li>
+                    {% endfor %}
+                    {% else %}
+                    <p>No files found. Please try a different search.</p>
+                    {% endif %}
                     {% endif %}
                 </ul>
             </div>
             <!-- Multi-download button -->
-            <button id="download-btn" class="download-btn" onclick="downloadFiles()" disabled>Download Selected File(s)</button>
+            <button id="download-btn" class="download-btn" onclick="downloadFiles()" disabled>Download Selected
+                File(s)</button>
         </div>
 
         <!-- Plot Container -->
         <div id="plot-container" style="margin-top: 20px;">
+            <div class="plot-header">File Preview</div>
+            <div id="plot-content">
             <!-- Plotly graph will be rendered here -->
+             </div>
         </div>
     </div>
 </body>
+
 </html>
 
 

@@ -22,6 +22,7 @@ body {
     align-items: center; /* Vertically center the items */
     padding: 0 20px;
     box-sizing: border-box;
+    z-index: 1000;
 }
 
 .home-icon {
@@ -45,9 +46,9 @@ body {
 
 /* Search Container */
 .search-container {
-    width: 60%;
+    width: 80%;
     background-color: #FCFBF9;
-    margin: 200px auto 0 auto;
+    margin: 125px auto 0 auto;
     padding: 20px 20px 5px 20px;
     border: 1px solid #E1DFD9;
     text-align: left;
@@ -78,7 +79,7 @@ body {
 }
 
 .results-container {
-    width: 60%;
+    width: 80%;
     background-color: #FCFBF9;
     margin: 50px auto;
     padding: 20px;
@@ -93,7 +94,15 @@ body {
     background-color: #2F363D;
     padding: 0;
     margin-bottom: 20px;
+    max-height: 300px;
+    /* enable vertical scrolling */
+    overflow-y: auto;
+    /* hide horizontal scrolling */
+    overflow-x: hidden; 
+    scrollbar-color: #8E97A1 #21262E; /* Thumb and track colors */
+    scrollbar-width: thin; /* Thin scrollbar */
 }
+
 
 .results-files-container ul {
     list-style-type: none;
@@ -114,7 +123,7 @@ body {
 }
 
 .file-name {
-    color: #3B8DEA;
+    color: #3279A5;
     font-family: 'Open Sans', sans-serif;
     cursor: pointer;
     margin-left: 10px;
@@ -185,13 +194,49 @@ button[disabled] {
 }
 
 
-#plot-container {
-    width: 100%;
-    height: 600px;
-    overflow: visible;
-    position: relative;
-    z-index: 9999;
-    background: peru;
+.plot-header {
+    width: calc(100% + 40px);
+    height: 35px;
+    background-color: #FCFBF9;
+    color: #21262E;
+    text-align: left;
+    line-height: 35px;
+    font-size: 18px;
+    font-weight: bold;
+    font-family: 'Open Sans', sans-serif;
+    padding-left: 20px; /* Adjust instead of using negative margins */
+    margin-left: -20px;; /* Remove negative margins */
+    border-bottom: 1px solid #E1DFD9;
+    position: sticky;
+    top: 0;
+    box-sizing: border-box;
 }
+
+#plot-container {
+    width: 80%;
+    height: 600px;
+    position: relative;
+    margin: 0 auto;
+    border: 1px solid #E1DFD9;
+    padding-left: 20px;
+    padding-right: 20px; /* Remove or reduce to match other sections */
+    background-color: #FCFBF9;
+    margin-bottom: 100px;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+}
+
+
+#plot-content {
+    flex: 1; /* Occupy remaining space below the header */
+    overflow: auto; /* Enable scrolling for overflowing plots */
+    position: relative;
+    margin-top: 20px;
+    margin-bottom: 20px;
+    border: 1px solid #E1DFD9;
+    border-radius: 3px;
+}
+
 
 /* font-family: monospace; */

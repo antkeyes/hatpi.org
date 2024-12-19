@@ -150,7 +150,14 @@ def plot_lightcurve(gaia_id):
 
         # Define the layout of the plot
         layout = go.Layout(
-            title=f'File Preview for Gaia_DR2_ID {gaia_id}',
+            title=dict(
+                text=f'Gaia DR2 ID: {gaia_id}',
+                x=0.5,
+                xanchor='center',               # Anchor the title at its center
+                font=dict(
+                    size=18
+                )
+            ),
             xaxis=dict(
                 title=f"Time (days since {time.min():.3f})",
                 showgrid=True,
