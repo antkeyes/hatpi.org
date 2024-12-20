@@ -7,6 +7,7 @@ import logging
 from astropy.io import fits
 import plotly.graph_objs as go
 from plotly.offline import plot
+from datetime import datetime
 
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
 
@@ -36,6 +37,7 @@ class LightcurveFile(db.Model):
 @app.route('/lightcurves', methods=['GET', 'POST'])
 def list_files():
     search_query = request.args.get('search')
+    active_tab = request.args.get('active_tab', 'multiple-search-container')
 
     app.logger.info(f"Received search query: {search_query}")
 
@@ -64,7 +66,7 @@ def list_files():
     else:
         app.logger.info("No search query provided.")
 
-    return render_template('lightcurves.html', files=results, search_query=search_query)
+    return render_template('lightcurves.html', files=results, search_query=search_query, active_tab=active_tab)
 
 
 
@@ -106,6 +108,10 @@ def plot_lightcurve(gaia_id):
     if not file_record:
         app.logger.error(f"No file found for Gaia_DR2_ID: {gaia_id}")
         return jsonify({'error': 'File not found in database.'}), 404
+    
+    #extract IHU ID and field name from DB record
+    ihu_id = file_record.IHUID
+    field_name = file_record.OBJECT
 
     # Adjust the file path for NFS
     file_path = file_record.path_to_file
@@ -115,6 +121,21 @@ def plot_lightcurve(gaia_id):
     if not os.path.exists(file_path_on_hatops):
         app.logger.error(f"File not found on server: {file_path_on_hatops}")
         return jsonify({'error': 'File not found on server.'}), 404
+
+    #extract date range from directory structure of path
+    segments = file_path_on_hatops.split('/')
+    #assuming second to last dir is always the date range dir
+    date_range_segment = segments[-2]
+    #split it on '-' and get start and end dates
+    start_date_str, end_date_str = date_range_segment.split('-')
+
+    try:
+        start_date = datetime.strptime(start_date_str, '%Y%m%d').strftime('%Y-%m-%d')
+        end_date = datetime.strptime(end_date_str, '%Y%m%d').strftime('%Y-%m-%d')
+        date_range = f"{start_date} to {end_date}"
+    except ValueError:
+        # Fallback in case of unexpected date format
+        date_range = f"{start_date_str} to {end_date_str}"
 
     try:
         # Open the FITS file and extract data
@@ -127,7 +148,7 @@ def plot_lightcurve(gaia_id):
             mag = data['FITMAG0']         # Replace 'mag0' with 'FITMAG0'
             err = data['ERR0']            # Replace 'err0' with 'ERR0'
 
-            # Optional: Shift time for better readability
+            # Shift time for better readability
             time_shifted = time - time.min()
 
         # Create an interactive scatter plot with error bars
@@ -153,23 +174,47 @@ def plot_lightcurve(gaia_id):
             title=dict(
                 text=f'Gaia DR2 ID: {gaia_id}',
                 x=0.5,
-                xanchor='center',               # Anchor the title at its center
+                xanchor='center',  # Anchor the title at its center
                 font=dict(
-                    size=18
+                    size=20
                 )
             ),
             xaxis=dict(
                 title=f"Time (days since {time.min():.3f})",
-                showgrid=True,
-                zeroline=False
+                titlefont=dict(
+                    size=16                 
+                ),
+                showgrid=True,                  # Keep grid lines visible
+                gridcolor='#E1DFD9',            # Light grid lines for subtlety
+                zeroline=False,                 # Remove bold zero line
+                linecolor='#A1A1A1',            # Axis line color
+                tickcolor='#A1A1A1',            # Tick color
+                ticks='outside',                # Ticks outside the plot area
+                showline=True                   # Show axis lines
             ),
             yaxis=dict(
                 title='Magnitude',
-                autorange='reversed',  # Invert y-axis for magnitudes
-                showgrid=True,
-                zeroline=False
+                titlefont=dict(
+                    size=16
+                ),
+                autorange='reversed',           # Keep magnitudes inverted
+                showgrid=True,                  # Keep grid lines visible
+                gridcolor='#E1DFD9',            # Light grid lines
+                zeroline=False,                 # Remove bold zero line
+                linecolor='#A1A1A1',            # Axis line color
+                tickcolor='#A1A1A1',            # Tick color
+                ticks='outside',                # Ticks outside the plot area
+                showline=True                   # Show axis lines
             ),
-            hovermode='closest'
+            hovermode='x',                      # Hover along the x-axis
+            plot_bgcolor='#FCFBF9',             # Match the site's background color
+            paper_bgcolor='#FCFBF9',            # Match the site's background color
+            margin=dict(
+                l=60,                          # Adjust left margin for better spacing
+                r=20,                          # Adjust right margin
+                t=60,                          # Adjust top margin
+                b=60                           # Adjust bottom margin
+            )
         )
 
         # Combine trace and layout into a figure
@@ -180,7 +225,12 @@ def plot_lightcurve(gaia_id):
 
         app.logger.info(f"Successfully generated plot for Gaia_DR2_ID: {gaia_id}")
 
-        return graphJSON
+        return jsonify({
+            'plot': graphJSON,
+            'ihu_id': ihu_id,
+            'field_name': field_name,
+            'date_range': date_range
+        })
 
     except Exception as e:
         app.logger.exception(f"Error generating plot for Gaia_DR2_ID {gaia_id}: {e}")

@@ -44,15 +44,100 @@ body {
     margin-top: 70px;
 }
 
-/* Search Container */
-.search-container {
+.search-section {
+    width: 100%;
+    margin: 0 auto;
+}
+
+.pills-container {
+    display: flex;
+    justify-content: flex-start;
+    margin-bottom: 20px;
+    margin-top: 125px;
     width: 80%;
+    margin-left: auto;
+    margin-right: auto;
+}
+
+.pill-button-unique {
     background-color: #FCFBF9;
-    margin: 125px auto 0 auto;
-    padding: 20px 20px 5px 20px;
+    border: 1px solid #E1DFD9;
+    color: #21262E;
+    padding: 10px 20px;
+    cursor: pointer;
+    transition: background-color 0.3s;
+    border-radius: 8px;
+    margin-right: 10px;
+    font-size: 1.1em;
+}
+
+.pill-button-unique:hover {
+    background-color: #f5f2ec;
+}
+
+.pill-button-unique.active {
+    background-color: #FCFBF9;
+    font-weight: bold;
+    border: 3px solid #666FC2;
+    /* box-shadow: 0 0 15px rgba(135, 104, 159, 0.8); */
+}
+
+/* Search Containers */
+.search-containers {
+    display: flex; /* Align items horizontally */
+    justify-content: center; /* Center the containers horizontally */
+    align-items: center;
+    height: auto;
+    /* width: calc(80% + 40px); */
+}
+
+.single-search-container,
+.multiple-search-container {
+    display: none;
+    width: 80%; /* Occupy the full space */
+    background-color: #FCFBF9;
+    padding: 20px;
     border: 1px solid #E1DFD9;
     text-align: left;
 }
+
+.single-search-container form, .multiple-search-container form {
+    display: flex;
+    flex-direction: column; /* Stack elements vertically */
+}
+
+.single-search-container.active,
+.multiple-search-container.active {
+    display: block;
+}
+
+.single-search-container button[type="submit"], 
+.multiple-search-container button[type="upload"] {
+    max-width: 85px;
+}
+
+/* Wrapper for multiple search and instructions containers */
+.multiple-search-wrapper {
+    display: none;
+}
+
+.multiple-search-wrapper.active {
+    display: flex; /* Align items horizontally */
+    justify-content: space-between; /* Add space between the two containers */
+    gap: 20px; /* Optional: Space between containers */
+    width: calc(80% + 40px); /* Full width of the parent container */
+}
+
+.multiple-search-container,
+.multiple-instructions-container {
+    width: 50%; /* Each container takes up half the space */
+    background-color: #FCFBF9; /* Match the existing style */
+    padding: 20px;
+    border: 1px solid #E1DFD9; /* Match the border style */
+    text-align: left; /* Align text to the left */
+}
+
+
 
 .search-header {
     width: calc(100% + 20px);
@@ -71,12 +156,6 @@ body {
     border-bottom: 1px solid #E1DFD9;
 }
 
-.note {
-    font-size: 12px;
-    color: #888888;
-    margin-top: 10px;
-    padding-left: 5px;
-}
 
 .results-container {
     width: 80%;
@@ -134,7 +213,7 @@ body {
 }
 
 .input-label {
-    font-size: 10px;
+    font-size: 12px;
     font-weight: bold;
     margin-bottom: 5px;
     display: block;
@@ -214,7 +293,7 @@ button[disabled] {
 
 #plot-container {
     width: 80%;
-    height: 600px;
+    height: 900px;
     position: relative;
     margin: 0 auto;
     border: 1px solid #E1DFD9;
@@ -232,11 +311,37 @@ button[disabled] {
     flex: 1; /* Occupy remaining space below the header */
     overflow: auto; /* Enable scrolling for overflowing plots */
     position: relative;
+    padding: 20px;
     margin-top: 20px;
     margin-bottom: 20px;
-    border: 1px solid #E1DFD9;
-    border-radius: 3px;
+    border: 5px solid #8E97A1;
+    border-radius: 6px;
 }
+
+#file-info {
+    display: flex; /* Arrange items horizontally */
+    gap: 15px; /* Increase space between items */
+    margin-top: 20px;
+    margin-bottom: 20px;
+    justify-content: flex-start; /* Align items to the left */
+}
+
+.file-info-item {
+    border: 1px solid #DDD; /* Light border for subtle definition */
+    padding: 8px 15px; /* Add consistent padding */
+    border-radius: 6px; /* Rounded corners for a modern look */
+    font-family: 'Open Sans', sans-serif; /* Keep font consistent */
+    font-size: 14px; /* Adjust font size for better readability */
+    background-color: #F7F9FC; /* Soft background for contrast */
+    color: #21262E; /* Dark text for readability */
+    text-align: center; /* Center-align the content */
+    white-space: nowrap; /* Prevent wrapping */
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1); /* Subtle shadow for depth */
+    transition: transform 0.2s ease, box-shadow 0.2s ease; /* Smooth hover effect */
+    cursor: default; /* Indicate static content */
+}
+
+
 
 
 /* font-family: monospace; */
