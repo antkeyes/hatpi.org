@@ -98,6 +98,7 @@ body {
     background-color: #FCFBF9;
     padding: 20px;
     border: 1px solid #E1DFD9;
+    border-radius:10px;
     text-align: left;
 }
 
@@ -135,6 +136,12 @@ body {
     padding: 20px;
     border: 1px solid #E1DFD9; /* Match the border style */
     text-align: left; /* Align text to the left */
+    border-radius: 10px;
+}
+
+/* margin beneath 'Browse' button */
+#file-upload {
+    margin-bottom: 15px;
 }
 
 
@@ -154,6 +161,10 @@ body {
     margin-top: -20px;
     margin-bottom: 10px;
     border-bottom: 1px solid #E1DFD9;
+    border-top-left-radius: 10px; /* Top left corner */
+    border-top-right-radius: 10px; /* Top right corner */
+    border-bottom-left-radius: 0; /* No radius for bottom left */
+    border-bottom-right-radius: 0; /* No radius for bottom right */
 }
 
 
@@ -215,7 +226,7 @@ body {
 .input-label {
     font-size: 12px;
     font-weight: bold;
-    margin-bottom: 5px;
+    margin-bottom: 10px;
     display: block;
     color: #21262E;
     padding-left: 5px;
@@ -230,7 +241,7 @@ input[type="text"] {
     margin-right: 10px;
     display: inline-block;
     vertical-align: middle;
-    margin-bottom: 20px;
+    margin-bottom: 20px; 
 }
 
 input::placeholder {
