@@ -1,0 +1,350 @@
+/* Global Resets and Basic Styles */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+html {
+    scroll-behavior: smooth;
+}
+
+body.lightcurves-page {
+    font-family: 'Inter', sans-serif;
+    font-size: 16px;
+    color: #1a1a1a;
+    background-color: #f9f9f9;
+}
+
+/* Left Sidebar Navigation */
+#lightcurves-navigation {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 18%;
+    height: 100vh;
+    background-color: #FFFFFF;
+    padding: 150px 20px;
+    display: flex;
+    flex-direction: column;
+    gap: 30px;
+    align-items: flex-start;
+    box-shadow: 4px 0 8px rgba(0, 0, 0, 0.05);
+    z-index: 10;
+}
+
+/* Home link/icon in sidebar */
+.nav-home-link {
+    position: absolute;
+    top: 20px;
+    left: 20px;
+    font-size: 3em;
+    text-decoration: none;
+}
+
+/* Sidebar Search Form Styling */
+#search-form-sidebar {
+    width: 100%;
+}
+
+#search-form-sidebar .nav-section-title {
+    font-size: 1.5em;
+    margin-bottom: 10px;
+    color: #333;
+    margin-bottom: 25px;
+}
+
+#search-form-sidebar form {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+#search-form-sidebar label {
+    font-weight: bold;
+    font-size: 0.9em;
+    margin-bottom: 3px;
+}
+
+#search-form-sidebar input[type="text"],
+#search-form-sidebar select {
+    width: 100%;
+    padding: 8px;
+    border: 1px solid #cccccc;
+    border-radius: 4px;
+}
+
+#search-form-sidebar small {
+    font-size: 0.8em;
+    color: #555;
+}
+
+#search-form-sidebar button.visit-button {
+    margin-top: 10px;
+}
+
+/* Position the second row of boxes in a row; allow wrap if needed */
+.search-info-row {
+    margin-top: 10px;
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+    /* so boxes don't overflow on small screens */
+}
+
+.search-info-box {
+    background-color: #ffffff;
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    padding: 8px 16px;
+    font-weight: 500;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.05);
+    /* If you want them aligned horizontally, ensure they have display:inline-block or display:flex */
+    display: inline-block;
+}
+
+
+/* Navigation Links below the form */
+.lightcurves-nav-link {
+    font-family: 'Inter', sans-serif;
+    font-size: 1.2em;
+    color: #646464;
+    text-decoration: none;
+    transition: font-size 0.7s ease, color 0.7s ease;
+}
+
+.lightcurves-nav-link.active-link {
+    color: #333333;
+    font-weight: bold;
+    border-radius: 5px;
+    padding: 5px 20px 5px 10px;
+    background-color: #DEE7E8;
+    transition: all 0.3s ease;
+}
+
+/* Main Content Area (to the right of the sidebar) */
+main {
+    margin-left: 18%;
+    /* Leaves space for the sidebar */
+    padding: 20px;
+    margin-top: 60px;
+    /* Ensure content isn't hidden behind fixed elements */
+}
+
+/* Section Card styling - reused style for a card look */
+.section-card {
+    background: #ffffff;
+    border-radius: 16px;
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15);
+    max-width: 1000px;
+    margin: 0 auto 60px;
+    padding: 40px;
+}
+
+/* Title Container in Cards */
+.title-container {
+    margin: -40px -40px 24px -40px;
+    background-color: #EEF0F4;
+    padding: 20px;
+    border-radius: 16px 16px 0 0;
+    width: 100%;
+}
+
+/* Target only the results .section-card */
+#results .section-card {
+    /* Remove or override the default 40px padding */
+    padding: 0;
+    /* Keep your desired rounding and box-shadow */
+    border-radius: 16px;
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15);
+    /* If you want the entire card to be flush with edges. */
+    overflow: hidden;
+    /* Ensures top corners or any child corners appear neatly */
+}
+
+/* Now the title-container can fill the top of the card fully */
+#results .title-container {
+    margin: 0;
+    /* Fill the width of the parent card */
+    width: 100%;
+    /* Internal spacing for the header area */
+    padding: 20px;
+    box-sizing: border-box;
+    background-color: #EEF0F4;
+    /* This ensures the top corners are also rounded if you want them to match the card’s radius: */
+    border-top-left-radius: 16px;
+    border-top-right-radius: 16px;
+}
+
+/* The .content-area can supply standard padding for the main body of the card. */
+#results .content-area {
+    padding: 40px;
+}
+
+/* Target the search-info-box in the first title-row within the title-container of the results section */
+#results .title-container .title-row:first-child .search-info-box {
+    background-color: #e6f9e6; /* A very light, subtle green */
+    font-weight: 700;
+}
+
+
+.small-icon {
+    width: 16px;      /* Adjust width as needed */
+    height: auto;
+    vertical-align: middle;  /* Align vertically with text */
+    margin-right: 3px;
+    position: relative;
+    top: -2px;      /* Move the icon up by 2px; adjust as needed */
+  }
+  
+  
+
+
+
+/* Title Row */
+.title-row {
+    display: flex;
+    align-items: center;
+    justify-content: flex-start;
+    gap: 20px;
+}
+
+/* Section Titles */
+.section-title {
+    font-size: 2em;
+    font-weight: 600;
+    color: #1a1a1a;
+    margin: 0;
+    text-align: left;
+}
+
+/* Section Subtext */
+.section-subtext {
+    font-size: 1.05em;
+    font-weight: 400;
+    color: #444;
+    margin-top: 16px;
+    text-align: left;
+    max-width: 750px;
+}
+
+/* Content Area inside Cards */
+.content-area {
+    margin-top: 24px;
+}
+
+/* Visit Button Styling (as used on the search form) */
+.visit-button {
+    display: inline-block;
+    padding: 12px 24px;
+    border: 1px solid #ccc;
+    border-radius: 9999px;
+    font-size: 0.95em;
+    font-weight: 500;
+    text-decoration: none;
+    color: #1a1a1a;
+    background-color: #e6f9e6;  /* Normal green background */
+    transition: all 0.3s ease;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+  }
+  
+  .visit-button:hover {
+    background-color: #d6f3d6;  /* Slightly darker green for hover */
+    color: 1a1a1a;
+    border-color: transparent;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.15);
+  }
+  
+
+/* The table-wrapper is optional if you want extra shadow or spacing, 
+   but let's assume we rely on the card's shadow & rounding. */
+.table-wrapper {
+    margin-top: 20px;
+    /* If you do want an extra subtle shadow behind just the table area:
+    box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+    border-radius: 8px;
+    overflow: hidden;
+    */
+}
+
+.frames-table {
+    width: 100%;
+    border-collapse: separate;
+    border-spacing: 0;
+    border-radius: 8px;
+    /* Overall table corners */
+    border: 1px solid #ddd;
+    /* Optional outer border */
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    /* Remove overflow: hidden if you used it on a wrapper; not needed here. */
+}
+
+/* Top-left corner */
+.frames-table thead tr:first-child th:first-child {
+    border-top-left-radius: 8px;
+}
+
+/* Top-right corner */
+.frames-table thead tr:first-child th:last-child {
+    border-top-right-radius: 8px;
+}
+
+/* Bottom-left corner (assuming the last row is in tbody) */
+.frames-table tbody tr:last-child td:first-child {
+    border-bottom-left-radius: 8px;
+}
+
+/* Bottom-right corner */
+.frames-table tbody tr:last-child td:last-child {
+    border-bottom-right-radius: 8px;
+}
+
+
+
+/* Remove thick borders so corners don't appear clipped */
+.frames-table th,
+.frames-table td {
+    border: 1px solid #ddd;
+    /* minimal cell borders */
+    padding: 10px;
+    text-align: left;
+}
+
+/* Header row color */
+.frames-table thead th {
+    background-color: #EEF0F4;
+    font-weight: bold;
+}
+
+/* Alternating row colors */
+.frames-table tbody tr:nth-child(odd) {
+    background-color: #f9f9f9;
+}
+
+.frames-table tbody tr:nth-child(even) {
+    background-color: #ffffff;
+}
+
+/* Hover effect */
+.frames-table tbody tr:hover {
+    background-color: #e9e9e9;
+}
+
+
+
+/* Utility text styles */
+.error-text {
+    color: red;
+    margin-top: 15px;
+}
+
+.message-text {
+    color: #333;
+    margin-top: 15px;
+}
+
+.small-text {
+    font-size: 0.9em;
+    color: #555;
+}

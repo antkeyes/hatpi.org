@@ -2,224 +2,146 @@
 <html lang="en">
 
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Gaia Light Curve Search</title>
-    <link rel="stylesheet" href="{{ url_for('static', filename='lightcurves_styles.css') }}">
-
-    <!-- Include Plotly.js -->
-    <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
-
-    <script>
-        document.addEventListener('DOMContentLoaded', () => {
-            const activeTab = "{{ active_tab }}"; // Rendered from Flask backend
-            if (activeTab === 'single-search-container') {
-                showTab('single-search-container', null); // Activate the Single Search tab
-            } else {
-                showTab('multiple-search-container', null); // Default to Multiple Search tab
-            }
-        });
-    
-        // Attach a submit event listener to the Single Search form
-        const singleSearchForm = document.getElementById('single-search-form');
-        if (singleSearchForm) {
-            singleSearchForm.addEventListener('submit', () => {
-                document.getElementById('active-tab-input').value = 'single-search-container';
-            });
-        }
-    
-        let selectedDownloadLinks = [];
-    
-        function handleFileSelect(downloadLink, checkboxId) {
-            const checkbox = document.getElementById(checkboxId);
-            if (checkbox.checked) {
-                selectedDownloadLinks.push(downloadLink);
-            } else {
-                selectedDownloadLinks = selectedDownloadLinks.filter(link => link !== downloadLink);
-            }
-            document.getElementById("download-btn").disabled = selectedDownloadLinks.length === 0;
-        }
-    
-        function downloadFiles() {
-            if (selectedDownloadLinks.length > 0) {
-                selectedDownloadLinks.forEach(link => {
-                    const a = document.createElement('a');
-                    a.href = link;
-                    a.download = ''; // Let the browser use the default filename
-                    document.body.appendChild(a);
-                    a.click();
-                    document.body.removeChild(a);
-                });
-            }
-        }
-    
-        // Function to fetch and plot the light curve
-        function fetchAndPlot(gaia_id) {
-            fetch(`/lightcurves/plot/${gaia_id}`)
-                .then(response => {
-                    if (!response.ok) {
-                        return response.json().then(errData => {
-                            throw new Error(errData.error || 'Network response was not ok');
-                        });
-                    }
-                    return response.json();
-                })
-                .then(data => {
-                    if (data.error) {
-                        alert(`Error: ${data.error}`);
-                        document.getElementById('plot-content').innerHTML = '';
-                    } else {
-                        Plotly.purge('plot-content');
-    
-                        var fig = JSON.parse(data.plot);
-                        Plotly.newPlot('plot-content', fig.data, fig.layout);
-    
-                        document.getElementById('ihu_id').textContent = data.ihu_id;
-                        document.getElementById('field_name').textContent = data.field_name;
-                        document.getElementById('date_range').textContent = data.date_range;
-                    }
-                })
-                .catch(error => {
-                    console.error('Error fetching plot:', error);
-                    alert(`An error occurred while fetching the plot: ${error.message}`);
-                    document.getElementById('plot-content').innerHTML = '';
-                });
-        }
-    
-        function showTab(containerId, event) {
-            // Remove active class from all buttons
-            const buttons = document.querySelectorAll('.pill-button-unique');
-            buttons.forEach(button => button.classList.remove('active'));
-    
-            // Add active class to the clicked button (if triggered by a user event)
-            if (event) {
-                event.target.classList.add('active');
-            } else {
-                // Automatically set the correct button as active if no event is triggered
-                const targetButton = document.querySelector(`[onclick="showTab('${containerId}', event)"]`);
-                if (targetButton) {
-                    targetButton.classList.add('active');
-                }
-            }
-    
-            // Hide all containers
-            const containers = document.querySelectorAll('.search-containers > div');
-            containers.forEach(container => container.classList.remove('active'));
-    
-            // Show the selected container
-            const selectedContainer = document.getElementById(containerId);
-            if (selectedContainer) {
-                selectedContainer.classList.add('active');
-            }
-    
-            // Additional logic for wrapping containers
-            const wrapper = document.querySelector('.multiple-search-wrapper');
-            if (containerId === 'multiple-search-container') {
-                wrapper.classList.add('active');
-            } else if (wrapper) {
-                wrapper.classList.remove('active');
-            }
-        }
-    </script>
-    
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Lightcurves</title>
+  <link rel="stylesheet" href="/static/lightcurves.css">
+  <link rel="icon" href="/static/images/favicon.png" type="image/x-icon">
 </head>
 
-<body>
-    <div class="header">
-        <a href="https://hatpi.org">
-            <img src="/static/images/hatpi_logo.jpeg" alt="Home" class="home-icon">
-        </a>
-    </div>
+<body class="lightcurves-page">
+  <!-- Left Sidebar Navigation -->
+  <nav id="lightcurves-navigation">
+    <a href="https://hatpi.org" class="nav-home-link">🏡</a>
 
-    <div class="container">
-        <div class="search-section">
-            <div class="pills-container">
-                <button class="pill-button-unique active" onclick="showTab('multiple-search-container', event)">Multiple
-                    ID
-                    Search</button>
-                <button class="pill-button-unique" onclick="showTab('single-search-container', event)">Single ID
-                    Search</button>
-            </div>
+    <!-- Search Form inside the Sidebar -->
+    <div id="search-form-sidebar">
 
-            <div class="search-containers">
-                <div id="multiple-search-wrapper" class="multiple-search-wrapper {% if active_tab == 'multiple-search-container' %}active{% endif %}">
-                    <div id="multiple-search-container" class="multiple-search-container {% if active_tab == 'multiple-search-container' %}active{% endif %}">
-                        <div class="search-header">Upload Gaia ID List</div>
-                        <form id="upload-form" enctype="multipart/form-data">
-                            <!-- <label for="file-upload" class="input-label">Upload a file with Gaia IDs</label> -->
-                            <input type="file" id="file-upload" name="file" accept=".csv, .txt" required>
-                            <button type="upload" onclick="submitFile()">Upload</button>
-                        </form>
-                    </div>
-                    <div id="multiple-instructions-container" class="multiple-instructions-container">
-                        <!-- Blank container for now -->
-                    </div>
-                </div>
-            
-                <div id="single-search-container" class="single-search-container {% if active_tab == 'single-search-container' %}active{% endif %}">
-                    <div class="search-header">Search HATPI Light Curves</div>
-                    <form method="GET" action="{{ url_for('list_files') }}" id="single-search-form">
-                        <input type="hidden" name="active_tab" value="single-search-container" id="active-tab-input">
-                        <label for="single-search-input" class="input-label">Gaia DR2 ID (partial or full)</label>
-                        <input type="text" id="single-search-input" name="search" placeholder="e.g. 5836683916148685056">
-                        <button type="submit">Search</button>
-                    </form>
-                </div>
-            </div>
-            
-        </div>
+      <h2 class="nav-section-title">
+        <img src="/static/icons/search.svg" alt="Gear Icon" class="nav-icon">
+        Search
+      </h2>
+      <form method="POST">
+        <label for="ra">
+          <img src="/static/icons/RA.png" alt="Gear Icon" class="small-icon">
+          RA (deg)</label>
+        <input type="text" id="ra" name="ra" placeholder="e.g. 180.07" value="{{ ra|default('') }}" />
 
+        <label for="dec">
+          <img src="/static/icons/DEC.png" alt="Gear Icon" class="small-icon">
+          DEC (deg)</label>
+        <input type="text" id="dec" name="dec" placeholder="e.g. -83.553" value="{{ dec|default('') }}" />
 
-        <!-- Results Container -->
-        <div class="results-container">
-            <div class="search-header">Search Results</div>
-            <div class="results-files-container">
-                <ul>
-                    {% if search_query is not none %}
-                    {% if files %}
-                    {% for file in files %}
-                    <li class="file-item">
-                        <!-- Checkbox for multi-select -->
-                        <input type="checkbox" id="file-{{ file['gaia_id'] }}"
-                            onclick="handleFileSelect('{{ url_for('download_file', gaia_id=file['gaia_id']) }}', 'file-{{ file['gaia_id'] }}')">
-                        <!-- Clickable file name to plot -->
-                        <a href="#" class="file-name"
-                            onclick="event.preventDefault(); fetchAndPlot('{{ file['gaia_id'] }}')">
-                            {{ file.filename }}
-                        </a>
-                        <!-- Single-file download link (optional) -->
-                        <!-- <a href="{{ url_for('download_file', gaia_id=file['gaia_id']) }}" class="download-link" style="margin-left:10px;">Download</a> -->
-                    </li>
-                    {% endfor %}
-                    {% else %}
-                    <p>No files found. Please try a different search.</p>
-                    {% endif %}
-                    {% endif %}
-                </ul>
-            </div>
-            <!-- Multi-download button -->
-            <button id="download-btn" class="download-btn" onclick="downloadFiles()" disabled>Download Selected
-                File(s)</button>
-        </div>
+        <label for="date_type">Date Type</label>
+        <select id="date_type" name="date_type">
+          <option value="datetime" {% if date_type=='datetime' %}selected{% endif %}>datetime</option>
+          <option value="JD" {% if date_type=='JD' %}selected{% endif %}>JD</option>
+        </select>
+        <small>If "datetime", format is YYYY-MM-DD.<br />If "JD", enter float such as 2459990.5.</small>
 
-        <!-- Plot Container -->
-        <div id="plot-container" style="margin-top: 20px;">
-            <div class="plot-header">File Preview</div>
+        <label for="date_min">Date Min</label>
+        <input type="text" id="date_min" name="date_min" placeholder="YYYY-MM-DD or 2459990.5"
+          value="{{ date_min_input|default('') }}" />
 
-            <!-- New File Info Section -->
-            <div id="file-info" style="margin-bottom: 10px;">
-                <div class="file-info-item">IHU ID: <span id="ihu_id"></span></div>
-                <div class="file-info-item">Field Name: <span id="field_name"></span></div>
-                <div class="file-info-item">Date Range: <span id="date_range"></span></div>
-            </div>
+        <label for="date_max">Date Max</label>
+        <input type="text" id="date_max" name="date_max" placeholder="YYYY-MM-DD or 2459991.5"
+          value="{{ date_max_input|default('') }}" />
 
-
-            <div id="plot-content">
-                <!-- Plotly graph will be rendered here -->
-            </div>
-        </div>
+        <button type="submit" class="visit-button">Submit</button>
+      </form>
 
     </div>
+
+  </nav>
+
+  <!-- Main content area for query results -->
+  <main>
+    <section id="results">
+      {% if error %}
+      <p class="error-text">{{ error }}</p>
+      {% endif %}
+
+      {% if message %}
+      <p class="message-text">{{ message }}</p>
+      {% endif %}
+
+      {% if frames is none %}
+      <div class="section-card">
+        <div class="title-container">
+          <div class="title-row">
+            <h2 class="section-title">Awaiting search ✨</h2>
+          </div>
+        </div>
+        <div class="content-area">
+          <!-- Optionally add a placeholder message -->
+        </div>
+      </div>
+
+      {% elif frames %}
+      <div class="section-card">
+        <!-- New Title Container Layout for Results -->
+        <div class="title-container">
+          <!-- First row: Frames Found -->
+          <div class="title-row">
+            <div class="search-info-box">
+              Frames Found: {{ frames|length }}
+            </div>
+          </div>
+          <!-- Second row: Query details -->
+          <div class="title-row search-info-row">
+            <div class="search-info-box">RA: {{ ra|default('N/A') }}</div>
+            <div class="search-info-box">DEC: {{ dec|default('N/A') }}</div>
+            <div class="search-info-box">Date Min: {{ date_min_input|default('N/A') }}</div>
+            <div class="search-info-box">Date Max: {{ date_max_input|default('N/A') }}</div>
+          </div>
+        </div>
+        <div class="content-area">
+          <div class="table-wrapper">
+            <table class="frames-table">
+              <thead>
+                <tr>
+                  <th>Object</th>
+                  <th>IHUID</th>
+                  <th>FNUM</th>
+                  <th>Path</th>
+                  <th>Datetime Obs</th>
+                  <th>EXPTIME</th>
+                </tr>
+              </thead>
+              <tbody>
+                {% for f in frames %}
+                <tr>
+                  <td>{{ f.OBJECT }}</td>
+                  <td>{{ f.IHUID }}</td>
+                  <td>{{ f.FNUM }}</td>
+                  <td>{{ f.relpath }}</td>
+                  <td>{{ f.datetime_obs }}</td>
+                  <td>{{ f.EXPTIME }}</td>
+                </tr>
+                {% endfor %}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      {% else %}
+      <div class="section-card">
+        <div class="title-container">
+          <div class="title-row">
+            <h2 class="section-title">Results</h2>
+          </div>
+        </div>
+        <div class="content-area">
+          <p>No frames found for that coordinate &amp; date range.</p>
+        </div>
+      </div>
+      {% endif %}
+    </section>
+
+  </main>
+
+  <script src="/static/lightcurves.js"></script>
 </body>
 
 </html>

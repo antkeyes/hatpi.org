@@ -9,6 +9,39 @@ html {
     scroll-behavior: smooth;
 }
 
+body {
+    font-family: 'Inter', sans-serif;
+    font-size: 16px;
+    color: #1a1a1a;
+    line-height: 1.6;
+    background-color: #f9f9f9;
+    /* ← Add this line */
+}
+
+main {
+    min-height: 100vh;
+    background-image: linear-gradient(to top, #F4F2EE 0%, white 100%);
+    background-repeat: no-repeat;
+    background-attachment: fixed; /* stays in place during scroll */
+    background-size: cover;       /* ensures no tiling */
+  }
+  
+
+
+
+h1 {
+    font-size: 2.5em;
+    font-weight: 700;
+    margin-bottom: 0.5em;
+}
+
+p {
+    font-size: 1.05em;
+    font-weight: 400;
+    color: #4a4a4a;
+    margin-bottom: 1em;
+}
+
 
 #timelapse-video {
     position: absolute;
@@ -26,7 +59,12 @@ html {
     /* cover the container without distortion */
     object-position: center;
     /* center the video vertically to crop evenly from top and bottom */
+    
 }
+
+
+
+
 
 /* Media query for smaller widths to show the full video */
 @media (max-width: 1000px) {
@@ -44,35 +82,44 @@ html {
 
 
 
-/* styling for link container at bottom of banner image */
-#bottom-links {
+/* Modern link container at bottom of banner image */
+#top-links {
     display: flex;
+    flex-wrap: wrap;
     position: absolute;
-    bottom: 45px;
-    left: 40px;
-    width: 100%;
-    text-align: center;
-    /* background-color: blue; */
-    justify-content: left;
-    gap: 20px;
+    top: 30px;
+    left: 30px;
+    gap: 16px;
+    z-index: 3;
 }
 
-/* styling for each link within bottom banner link container */
-#bottom-links a {
+/* Modern button-style links */
+#top-links a {
     display: inline-flex;
     align-items: center;
-    width: 100%;
-    max-width: 400px;
-    color: #F9F4ED;
-    font-size: 1.2em;
-    font-family: 'Open Sans', sans-serif;
+    justify-content: center;
+    padding: 16px 32px;
+    font-family: 'Inter', sans-serif;
+    font-size: 1.2rem;
+    font-weight: 500;
+    color: #ffffff;
+    background-color: rgba(255, 255, 255, 0.08);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    border-radius: 9999px;
+    /* pill shape */
     text-decoration: none;
-    text-align: left;
-    border-top: 1px solid #5F665E;
-    padding-top: 35px;
-    transition: color o.3s ease;
-    font-weight: bold;
+    white-space: nowrap;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    transition: all 0.3s ease;
 }
+
+#top-links a:hover {
+    background-color: rgba(255, 255, 255, 0.15);
+    transform: translateY(-2px);
+    box-shadow: 0 6px 18px rgba(0, 0, 0, 0.3);
+}
+
+
 
 
 
@@ -81,10 +128,11 @@ main {
     padding: 20px;
     color: #333;
     /* text color */
-    font-family: Arial, Helvetica, sans-serif;
+    /* font-family: Arial, Helvetica, sans-serif; */
     text-align: center;
-    margin-top: 20px;
 }
+
+
 
 /* full-width image styling (instrument at night) */
 #full-width-image {
@@ -104,6 +152,9 @@ main {
     max-height: 700px;
     aspect-ratio: 16 / 9;
     overflow: hidden;
+    box-shadow: 0px 8px 20px rgba(0, 0, 0, 0.5);
+    /* 🔥 this line is new */
+    z-index: 1;
 }
 
 /* overlay slogan text container with grid layout */
@@ -121,32 +172,53 @@ main {
     /* text color */
     background-color: rgba(0, 0, 0, 0.3);
     /* slight dark overlay of timelapse*/
+    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.4);
 }
+
+
 
 /* slogan text in the first column */
 .text-column {
     padding-left: 40px;
     /* optional padding */
     padding-bottom: 50px;
+    animation: fadeInUp 1s ease-out forwards;
+    opacity: 0;
+    transform: translateY(20px);
+}
+
+@keyframes fadeInUp {
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
 }
 
 /* font for slogan text */
 .text-column h1,
 .text-column p {
-    font-family: Arial, Helvetica, sans-serif;
+    font-family: 'Inter', sans-serif;
 }
 
 .text-column h1 {
-    font-size: 4em;
-    /* make HATPI title large */
-    font-weight: 600;
+    text-shadow: 0 4px 8px rgba(0, 0, 0, 0.4);
+}
+
+
+.text-column h1 {
+    font-size: 4.5em;
+    font-weight: 700;
+    letter-spacing: -1px;
+    color: #ffffff;
+    margin-bottom: 10px;
 }
 
 .text-column p {
-    font-size: 1.3em;
-    color: #FFFFFF;
-    font-weight: 200;
-    font-family: 'Open Sans', sans-serif;
+    font-size: 1.4em;
+    font-weight: 400;
+    line-height: 1;
+    color: #e0e0e0;
+    margin-bottom: 10px;
 }
 
 
@@ -154,224 +226,307 @@ main {
 
 
 
-/* about section styling */
-#about {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 20px;
-    padding-bottom: 50px;
+/* ==========================================================================
+   Common Container for the About & Light Curves Sections
+   ========================================================================== */
+.section-card {
+    background: #ffffff;
+    border-radius: 16px;
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15);
     max-width: 1000px;
-    margin: 0 auto;
-    /* center container on screen */
-    justify-items: center;
-    border-bottom: 2px solid #ccc;
-    color: #333333;
-    /* text color */
+    margin: 0 auto 60px;
+    padding: 40px;
+    /* Consistent internal spacing */
 }
 
+/* ==========================================================================
+     Top Area: Title Container (Header Row + Subtext)
+     ========================================================================== */
+.title-container {
+    margin: -40px -40px 24px -40px;
+    background-color: #ECEFF6;
+    /* New background color */
+    padding: 20px;
+    /* Adjust padding as needed */
+    border-radius: 16px 16px 0 0;
+}
 
-
-/* column styling withint the about section */
-.about-column {
+/* Header row: holds the section title and the visit/learn-more button */
+.title-row {
+    position: relative;
     display: flex;
-    flex-direction: column;
-    /* padding: 20px; */
-    align-items: flex-start;
-    justify-content: center;
-    font-family: 'Open Sans', sans-serif;
-    max-width: 400px;
+    align-items: center;
+    justify-content: flex-start;
+    /* Place title left; button right */
+    gap: 20px;
+    border-radius: 16px 16px 0 0;
+    background: transparent;
+    /* Background provided by the pseudo-element */
 }
 
-/* column styling withint the about section */
-.about-column-right {
-    display: flex;
-    flex-direction: column;
-    /* padding: 20px; */
-    align-items: flex-start;
-    justify-content: center;
-    font-family: 'Open Sans', sans-serif;
-    max-width: 450px;
-    margin-bottom: 30px;
-
+/* Section Title */
+.section-title {
+    font-size: 2em;
+    font-weight: 600;
+    letter-spacing: -0.5px;
+    color: #1a1a1a;
+    margin: 0;
+    text-align: left;
 }
 
-.photo-gallery-link {
-    font-family: 'Open Sans', sans-serif;
-    color: #636363;
-    text-decoration: none;
-    /* Remove underline */
-    padding-top: 10px;
-    font-size: 1em;
-    /* Adjust size as needed */
-    transition: transform 0.3s ease, font-size 0.3s ease;
-    /* Smooth hover effect */
-}
-
-.photo-gallery-link:hover {
+/* Section Subtext */
+.section-subtext {
     font-size: 1.05em;
+    font-weight: 400;
+    color: #444;
+    margin-top: 16px;
+    text-align: left;
+    max-width: 750px;
+}
+
+/* ==========================================================================
+     Bottom Area: Content Area (Images for About, Feature List for Light Curves)
+     ========================================================================== */
+.content-area {
+    margin-top: 24px;
+}
+
+/* ==========================================================================
+     ABOUT SECTION SPECIFIC STYLES
+     ========================================================================== */
+
+#about .section-card {
+    margin-top: 60px;
 }
 
 
-/* mosaic image styling in the about section */
+/* Image row container */
+.about-images-row {
+    display: flex;
+    gap: 24px;
+    justify-content: center;
+    align-items: stretch;
+    flex-wrap: nowrap;
+}
+
+/* Links wrapping each image */
+.about-images-row a {
+    flex: 1 1 0;
+    max-width: 500px;
+    overflow: hidden;
+}
+
+/* Images inside the row */
+.about-images-row img {
+    width: 100%;
+    height: 300px;
+    object-fit: contain;
+}
+
+/* Rounded-corners variant */
+.about-images-row a img.rounded-corners {
+    display: block;
+    object-fit: cover;
+    border-radius: 10px !important;
+}
+
+/* Additional styles for mosaic images if used */
+.mosaic-container {
+    overflow: visible;
+    /* Ensures any hover effect overflow is visible */
+}
+
+.about-images-row a.mosaic-container {
+    overflow: visible !important;
+    position: relative;
+    /* Allows z-index to work for hover effects */
+}
+
+/* Hover effect on mosaic images */
+.mosaic-container img {
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+    transform-origin: center center;
+}
+
+.mosaic-container img:hover {
+    transform: perspective(1000px) scale(1.15);
+    z-index: 10;
+}
+
+/* Optional mosaic image styling (if used separately) */
 .mosaic-image {
-    width: 475px;
+    width: 100%;
     height: auto;
     margin-bottom: 15px;
-    cursor: pointer;
-    padding: 30px;
-    transition: transform 0.3s ease;
-    /* Smooth hover effect */
+    padding: 0;
+    border-radius: 12px;
 }
 
 .mosaic-image:hover {
     transform: scale(1.05);
-    /* Slightly enlarge image on hover */
 }
 
+/* ==========================================================================
+     LIGHT CURVES SECTION SPECIFIC STYLES
+     ========================================================================== */
+.lightcurves-features {
+    list-style: none;
+    padding: 0;
+    margin-bottom: 30px;
+    text-align: left;
+}
 
-.about-column-right h1 {
-    font-size: 2em;
+.lightcurves-features li {
+    font-size: 0.95em;
+    color: #555;
     margin-bottom: 10px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
 }
 
-.about-column-right p {
-    font-size: .9em;
-    text-align: left !important;
-    font-weight: 100;
+/* Flex container for the light curves content area */
+.lightcurves-content {
+    display: flex;
+    flex-wrap: wrap;
+    /* Allow wrapping on smaller screens */
+    gap: 20px;
+    /* Space between the list and the image */
+    align-items: center;
 }
 
-.vertical-pipe-h1 {
-    display: inline-block;
-    width: 2px;
-    height: 1.3em;
-    background-color: #333333;
-    vertical-align: middle;
-    margin: 0 15px;
+/* Ensure the features list takes up available space */
+.lightcurves-features {
+    align-self: flex-end;
+    max-width: 45%;
+    flex: 1 1 auto;
+    margin: 0;
+    padding: 0;
 }
 
+
+
+/* Style the image with a maximum width of 350px */
+.three-about-pics {
+    align-self: center;
+    /* Ensure it's treated as a block element */
+    display: block;
+    margin: 0;
+}
+
+
+
+/* ==========================================================================
+     AUXILIARY ELEMENTS
+     ========================================================================== */
+/* Learn More Link */
 .learn-more {
     text-decoration: none;
     font-weight: bold;
     font-family: 'Open Sans', sans-serif;
     color: #646464;
-    font-size: .6em;
+    font-size: 0.6em;
     transition: transform 0.3s ease, font-size 0.3s ease;
-    /* Smooth hover effect */
 }
 
 .learn-more:hover {
     transform: scale(1.1);
-    /* Slightly enlarge the text */
     font-size: 0.7em;
-    /* Increase font size slightly */
 }
 
+/* Coordinate Link */
 .coordinate-link {
     text-decoration: none;
     font-weight: bold;
     font-family: 'IBM Plex Mono', monospace;
     color: inherit;
     margin-left: 5px;
-    font-size: .8em;
+    font-size: 0.8em;
     transition: transform 0.3s ease, font-size 0.3s ease;
-    /* Smooth hover effect */
 }
 
 .coordinate-link:hover {
     font-size: 0.85em;
 }
 
+/* Optional three-picture styling */
 .three-about-pics {
     max-width: 350px;
     margin-top: 15px;
 }
 
-
-#light-curves {
-    max-width: 1000px;
-    margin: 0 auto;
-    padding-top: 80px;
-    padding-bottom: 80px;
-    padding-left: 40px;
-    padding-right: 40px;
-    text-align: left;
-    border-bottom: 2px solid #ccc;
-}
-
-#light-curves h1 {
-    font-size: 2em;
-    font-family: 'Open Sans', sans-serif;
-}
-
-#light-curves p {
-    font-size: .9em;
-    text-align: left !important;
-    font-family: 'Open Sans', sans-serif;
-    font-weight: 100;
-    margin-top: 7px;
-    margin-bottom: 40px;
-}
-
-.light-curves-image {
-    display: block;
-    max-width: 100%;
-    height: auto;
-    margin: 20px auto;
-    padding: 25px;
-    border: 1px dashed black;
-}
-
-.visit-page {
+/* ==========================================================================
+     BUTTON STYLES (Visit / Learn More)
+     ========================================================================== */
+.visit-button {
+    display: inline-block;
+    padding: 12px 24px;
+    border: 1px solid #ccc;
+    border-radius: 9999px;
+    font-size: 0.95em;
+    font-weight: 500;
     text-decoration: none;
-    font-weight: bold;
-    font-family: 'Open Sans', sans-serif;
-    color: #646464;
-    font-size: .6em;
-    transition: transform 0.3s ease, font-size 0.3s ease;
-    /* Smooth hover effect */
+    color: #1a1a1a;
+    background: linear-gradient(to right, #ECEFF6, white);
+    transition: all 0.3s ease;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+}
+
+.visit-button:hover {
+    background: linear-gradient(to right, #ECEFF6, white);
+    /* color: white;
+    border-color: transparent; */
+    transform: translateY(-3px);
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.15);
+}
+
+
+/* Alternate Visit Page Button */
+.visit-page {
+    display: inline-block;
+    margin-top: 24px;
+    padding: 10px 22px;
+    background-color: #1a1a1a;
+    color: #fff;
+    border-radius: 9999px;
+    text-decoration: none;
+    font-size: 0.9em;
+    font-weight: 500;
+    transition: background-color 0.3s ease, transform 0.3s ease;
 }
 
 .visit-page:hover {
-    transform: scale(1.1);
-    /* Slightly enlarge the text */
-    font-size: 0.7em;
-    /* Increase font size slightly */
+    background-color: #333333;
+    transform: translateY(-2px);
+}
+
+/* ==========================================================================
+     RESPONSIVE ADJUSTMENTS
+     ========================================================================== */
+@media (max-width: 600px) {
+    .title-row {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+
+    .visit-button {
+        margin-top: 12px;
+        margin-left: 30px;
+    }
 }
 
 
 
 
-#publications {
-    max-width: 1000px;
-    margin: 0 auto;
-    padding-top: 80px;
-    padding-bottom: 200px;
-    padding-left: 40px;
-    padding-right: 40px;
+/* ==========================================================================
+     PUBLICATIONS SECTION
+     ========================================================================== */
+
+.publications-content {
     text-align: left;
-    border-bottom: 2px solid #ccc;
-}
-
-#publications h1 {
-    font-size: 2em;
-    font-family: 'Open Sans', sans-serif;
-}
-
-.coming-soon {
-    text-decoration: none;
-    font-weight: bold;
-    font-family: 'Open Sans', sans-serif;
-    color: #646464;
-    font-size: .6em;
-    transition: transform 0.3s ease, font-size 0.3s ease;
-    /* Smooth hover effect */
-}
-
-.coming-soon:hover {
-    transform: scale(1.1);
-    /* Slightly enlarge the text */
-    font-size: 0.7em;
-    /* Increase font size slightly */
+    /* Center the visit button horizontally */
+    margin-top: 24px;
+    /* Optional: additional vertical spacing if needed */
 }
 
 
@@ -383,53 +538,52 @@ main {
 #team {
     max-width: 1000px;
     margin: 0 auto;
-    padding-top: 80px;
-    padding-bottom: 100px;
-    padding-left: 40px;
-    padding-right: 40px;
+    padding: 80px 20px 100px;
     text-align: left;
-    border-bottom: 2px solid #ccc;
-    font-family: 'Open Sans', sans-serif;
+    font-family: 'Inter', sans-serif;
 }
-
 
 #team h1 {
     font-size: 2em;
-    font-weight: bold;
+    font-weight: 500;
+    margin-bottom: 40px;
+    display: inline-block;
+    /* Shrinks the width to just the text */
+    border-bottom: 2px solid #ccc;
+    /* Underline only the text */
+    text-align: left;
+    /* Ensure the h1 text is left-aligned */
 }
 
-/* Common styling for grid rows */
-.team-grid-row {
+/* Grid layout for team */
+.team-grid {
     display: grid;
-    max-width: 550px;
+    grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+    gap: 32px;
+    justify-items: center;
+    align-items: start;
+    max-width: 1000px;
     margin: 0 auto;
-    gap: 0px;
-    margin-bottom: 20px;
-    /* Space between rows */
-
+    padding-top: 60px;
 }
 
-/* First row: 3 columns */
-.team-grid-row:first-of-type {
-    grid-template-columns: repeat(3, 1fr);
-    /* Three equal columns */
-    justify-content: center;
-    margin-top: 75px;
-    margin-bottom: 30px;
-}
-
-/* Second row: 2 columns */
-.team-grid-row:last-of-type {
-    grid-template-columns: repeat(3, 1fr);
-    /* Two equal columns */
-    justify-content: center;
-    /* max-width: 367px; */
-    margin: 0 auto;
-}
-
-/* Individual team member card */
+/* Individual card styling */
 .team-member {
+    background: #ffffff;
+    border-radius: 16px;
+    padding: 20px;
     text-align: center;
+    box-shadow: 0 6px 16px rgba(0, 0, 0, 0.06);
+    transition: transform 0.3s ease;
+    width: 100%;
+    min-height: 300px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+.team-member:hover {
+    transform: translateY(-5px);
 }
 
 /* Team member images */
@@ -437,101 +591,125 @@ main {
     width: 150px;
     height: 150px;
     border-radius: 50%;
-    /* Makes the images round */
     object-fit: cover;
-    /* Ensures the image fits well */
-    margin-bottom: 0px;
+    margin-bottom: 12px;
     border: 2px solid #ccc;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.12);
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
 }
 
-/* Team member name */
-.team-name {
-    font-size: 1.2em;
-    font-weight: bold;
-}
-
-/* Team member role */
-.team-role {
-    font-size: .9em;
-    color: #696969;
-    /* Optional: Light gray color for the role */
-}
-
-/* Make the whole card clickable */
-.team-member-link {
-    text-decoration: none;
-    /* Remove underline from links */
-    color: inherit;
-    /* Inherit text color */
-    display: block;
-}
-
-/* Add hover effect */
-.team-member-link:hover .team-member {
+.team-member:hover img {
     transform: scale(1.02);
-    /* Slight zoom effect on hover */
-    transition: transform 0.2s ease-in-out;
+    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.18);
+    /* 👈 elevated on hover */
 }
 
+
+/* Ensure consistent spacing between text elements */
+.team-member p {
+    margin: 0;
+    padding: 0;
+    line-height: 1.3;
+}
+
+/* Team name */
+.team-name {
+    font-size: 1.1em;
+    font-weight: 600;
+    color: #1a1a1a;
+    line-height: 1.2;
+    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+}
+
+/* Subtle divider below the name */
+.team-name::after {
+    content: "";
+    display: block;
+    width: 20px;
+    height: 2px;
+    background: #eee;
+    margin: 6px auto 8px;
+}
+
+/* Role text */
+.team-role {
+    font-size: 0.8em;
+    font-weight: 500;
+    color: #888;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin-top: 0;
+    margin-bottom: 2px;
+}
+
+/* Profession text */
 .team-profession {
     font-size: 0.8em;
-    /* Smaller font size */
-    color: #888;
-    /* Light gray color */
-    margin-top: 5px;
-    /* Add spacing above the profession */
+    color: #aaa;
+    margin-top: 0;
+}
+
+/* Make cards clickable */
+.team-member-link {
+    text-decoration: none;
+    color: inherit;
+    display: block;
+    width: 100%;
+    height: 100%;
 }
 
 
+/* et al team section */
 
+/* Container that wraps the button and the hidden section */
+.et-al-container {
+    margin-top: 20px;
+    text-align: center;
+}
 
-
-
-
-#acknowledgments {
-    max-width: 1000px;
-    margin: 0 auto;
-    padding-top: 80px;
-    padding-bottom: 80px;
-    padding-left: 40px;
-    padding-right: 40px;
-    text-align: left;
+/* The button itself */
+.et-al-button {
+    background-color: #f5f5f5;
+    /* Light gray or any color you prefer */
+    border: 2px solid #ccc;
+    border-radius: 5px;
+    padding: 10px 20px;
+    cursor: pointer;
     font-family: 'Open Sans', sans-serif;
+    font-weight: bold;
+    font-size: 0.9em;
+    transition: background-color 0.3s ease, border-color 0.3s ease;
+    margin-bottom: 10px;
 }
 
-#acknowledgments p {
-    font-size: .9em;
-    font-family: 'Open Sans', sans-serif;
-    font-weight: 100;
+/* Hover effect for the button */
+.et-al-button:hover {
+    background-color: #e8e8e8;
+    /* Slightly darker gray */
+    border-color: #bbb;
+}
+
+/* The small arrow next to 'et al.' */
+.et-al-button .arrow {
+    margin-left: 5px;
+}
+
+/* This is the hidden class to show/hide the extra team. */
+.hidden {
+    display: none;
+}
+
+/* Additional container styling for the expanded section (optional) */
+.et-al-section {
+    margin-top: 20px;
 }
 
 
-.acknowledgment-container {
-    text-align: left;
-}
-
-.acknowledgment-container h1 {
-    margin: 0;
-    font-size: 2em;
-}
-
-.acknowledgment-subline {
-    display: flex;
-    align-items: center;
-    /* Align the pipe and paragraph vertically */
-    height: 35px;
-    gap: 0px;
-    /* Space between the pipe and the text */
-    padding-left: 10px;
-    margin-top: 5px;
-    border-left: 2px solid #333333;
-}
 
 
-.acknowledgment-container p {
-    margin: 0;
-    font-size: 1em;
-}
+
+
+
 
 
 .vertical-pipe-acknowledgments {
@@ -649,17 +827,22 @@ main {
 
 
 #page-footer {
-    background-color: black;
+    /* White background */
     color: #646464;
     height: 75px;
     display: flex;
     justify-content: space-between;
     align-items: center;
-    font-family: 'Open Sans', sans-serif;
+    font-family: 'Inter', sans-serif;
     font-size: 0.9em;
     padding: 0 20px;
     position: relative;
+    margin: 0 10px 10px;
+    /* 10px on left, right, and bottom; 0 on top */
+
+    /* Rounded corners */
 }
+
 
 .footer-icons {
     display: flex;
@@ -708,147 +891,119 @@ main {
 
 /* ABOUT PAGE */
 
-/* Top banner styling */
-#about-header {
-    background-color: #191919;
-    height: 50px;
-    display: flex;
-    align-items: center;
-    padding-left: 20px;
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100%;
-    z-index: 20;
-    /* Ensure it's above other content */
-}
 
-/* Home icon styling */
-.home-icon {
-    height: 30px;
-    width: auto;
-    cursor: pointer;
-    transition: transform 0.2s ease;
-}
-
-.home-icon:hover {
-    transform: scale(1.1);
-}
-
-/* About page navigation container */
-/* Top banner styling */
-#about-header {
-    background-color: #191919;
-    height: 50px;
-    display: flex;
-    align-items: center;
-    padding-left: 20px;
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100%;
-    z-index: 20;
-    /* ensures it's above other content */
-}
-
-/* Home icon styling */
-.home-icon {
-    height: 30px;
-    width: auto;
-    cursor: pointer;
-    transition: transform 0.2s ease;
-}
-
-.home-icon:hover {
-    transform: scale(1.1);
-}
-
-
-
-
-
-
-
-/* About page navigation container */
+/* Left Sidebar Navigation */
 #about-page-navigation {
     position: fixed;
-    top: 50px;
-    /* Directly below the black header bar */
+    top: 0;
     left: 0;
-    width: 100%;
-    background-color: white;
-    z-index: 10;
-    border-bottom: 2px solid #cccccc;
-    padding: 30px 20px;
+    width: 18%;
+    height: 100vh;
+    background-color: #FFFFFF;
+    padding: 150px 20px;
     display: flex;
-    align-items: center;
-    justify-content: flex-start;
-    box-shadow: 0px 2px 5px rgba(0, 0, 0, 0.1);
-    /*  shadow for separation */
+    flex-direction: column;
+    gap: 30px;
+    align-items: flex-start;
+    box-shadow: 4px 0 8px rgba(0, 0, 0, 0.05);
+    z-index: 10;
+    /* Ensure the container serves as a positioning context */
+    /* (it’s already fixed, so it's fine) */
 }
 
-/* Navigation links */
+#about-page-navigation .nav-home-link {
+    position: absolute;
+    top: 20px;
+    /* 20px from the top */
+    left: 20px;
+    /* 20px from the left */
+    font-size: 3em;
+    /* Adjust for a bigger appearance if needed */
+    text-decoration: none;
+}
+
+
+
+/* Remove vertical pipes if they exist */
+.vertical-pipe {
+    display: none;
+}
+
+/* Navigation Link Styles */
 .about-nav-link {
-    font-family: 'Open Sans', sans-serif;
-    font-size: 1.5em;
+    font-family: 'Inter', sans-serif;
+    font-size: 1.2em;
     color: #646464;
     text-decoration: none;
-    transition: font-size 0.3s ease, color 0.3s ease;
+    transition: font-size 0.7s ease, color 0.7s ease;
 }
 
-/* Active link style */
 .about-nav-link.active-link {
     color: #333333;
+    /* Active text color */
+    font-weight: bold;
+    /* Make text bold */
+    border-radius: 5px;
+    /* Slightly rounded corners */
+    padding: 5px 20px 5px 10px;
+    /* background: linear-gradient(to right, #dcdcdc, #ededed); */
+    background-color: #DEE7E8;
+    transition: all 0.3s ease;
+    /* Smooth transition on changes */
 }
 
-/* Hover effect for inactive links */
-.about-nav-link:hover {
-    font-size: 1.7em;
+.nav-icon {
+    margin-right: 0;
+    /* Space between the icon and text */
+    width: 32px;
+    height: 32px;
+    vertical-align: middle;
+    /* Align icon vertically with text */
 }
 
-/* Dynamic active link style */
-.about-nav-link.active-link {
-    color: #333333;
+
+/* Adjust the main content to accommodate the sidebar */
+.about-page main {
+    margin-left: 15%;
+    /* Leave space on the left for the sidebar */
+    padding: 20px;
 }
 
-/* Styling for active and inactive links based on IntersectionObserver */
-.about-nav-link:not(.active-link) {
-    color: #a4a4a4;
+
+section h1 {
+    font-size: 2em;
+    font-weight: 600;
+    position: relative;
+    padding-bottom: 10px;
+    margin-bottom: 30px;
+    border-bottom: 2px solid #e0e0e0;
 }
 
-/* Vertical pipe styling */
-.vertical-pipe {
-    display: inline-block;
-    width: 2px;
-    height: 24px;
-    background-color: #cccccc;
-    margin: 0 20px;
-}
-
-#history-link {
-    padding-left: 150px;
-}
 
 /* Main content sections */
 section {
     max-width: 1000px;
     margin: 0 auto;
     /*  spacing between sections */
-    padding: 120px 20px 20px;
+    padding: 0 0 20px;
     /* Add top padding to offset navigation */
     font-family: 'Open Sans', sans-serif;
 }
 
 /* Ensure all text in these sections is left-aligned */
-#history, #key-science, #photo-gallery, #technical-specifications {
+#history,
+#key-science,
+#photo-gallery,
+#technical-specifications {
     text-align: left;
 }
 
 
 #history {
-    margin-top: 50px;
+    margin-top: 90px;
     position: relative;
     max-width: 1000px !important;
+
 }
 
 section h1 {
@@ -877,12 +1032,13 @@ section p {
 .photo-gallery img {
     width: 100%;
     height: 200px;
-    max-width: 300px; 
+    max-width: 300px;
     border: 2px solid #cccccc;
     border-radius: 5px;
     transition: transform 0.3s ease;
     cursor: pointer;
     object-fit: cover;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
 }
 
 @media (max-width: 800px) {
@@ -916,7 +1072,7 @@ section p {
     position: relative;
     padding-top: 20px;
     padding-right: 50px;
-    width: 100px; 
+    width: 100px;
     flex-shrink: 0;
 }
 
@@ -924,23 +1080,27 @@ section p {
 /* Timeline bar styling */
 .timeline-bar {
     position: relative;
-    width: 3px; /* Thickness of the timeline bar */
+    width: 0px;
+    /* Thickness of the timeline bar */
     background-color: #cccccc;
     height: 100%;
-    margin-left: auto; /* Align the bar to the right within the timeline container */
+    margin-left: auto;
+    /* Align the bar to the right within the timeline container */
 }
 
 
 /* Timeline year links */
 .timeline-year {
     position: absolute;
-    right: calc(100% + 20px); /* Position to the left of the timeline bar */
+    right: calc(100% + 20px);
+    /* Position to the left of the timeline bar */
     transform: translateY(-50%);
     font-family: 'Open Sans', sans-serif;
     font-size: 1.2em;
-    color: #a4a4a4; 
+    color: #a4a4a4;
     text-decoration: none;
     transition: color 0.3s ease, font-weight 0.3s ease;
+    text-align: justify;
 }
 
 
@@ -950,9 +1110,25 @@ section p {
     font-weight: 525;
 }
 
+.history-chunk {
+    background-color: #F8F8F8;
+    border: 1px solid #e0e0e0;
+    /* or whatever border color you prefer */
+    border-radius: 16px;
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.05);
+    margin-bottom: 35px;
+    padding: 0 20px;
+}
+
 .history-container {
     display: flex;
     position: relative;
+    background-color: #FFFFFF;
+    border-radius: 16px;
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15);
+    padding-left: 75px;
+    padding-right: 30px;
+    padding-top: 30px;
 }
 
 /* History section content */
@@ -973,26 +1149,30 @@ section p {
 
 /* Style for the text container */
 .history-text {
-    flex: 1 1 50%; /* Grow and shrink, basis at 50% */
+    flex: 1 1 50%;
+    /* Grow and shrink, basis at 50% */
     padding: 10px;
     box-sizing: border-box;
 }
 
 /* Style for the image container */
 .history-image {
-    flex: 1 1 50%; /* Grow and shrink, basis at 50% */
+    flex: 1 1 50%;
+    /* Grow and shrink, basis at 50% */
     padding: 10px;
     box-sizing: border-box;
     display: flex;
-    align-items: center; 
+    align-items: center;
     flex-direction: column;
 }
- 
+
 /* ensures images are responsive */
-.history-image img {
+.history-image img,
+.history-image video {
     max-width: 100%;
     height: auto;
-    border-radius: 5px; 
+    border-radius: 5px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
 }
 
 
@@ -1005,14 +1185,70 @@ section p {
 }
 
 .additional-images img {
-    width: 49%; /* So that two images take up approximately 100% together */
+    width: 49%;
+    /* So that two images take up approximately 100% together */
     height: auto;
     border-radius: 5px;
 }
 
 .history-content h2 {
-    margin-top: 50px;
+    margin-top: 20px;
     font-family: 'Open Sans', sans-serif;
 }
 
- 
+#history .title-container {
+    margin-left: -195px;
+    /* Shift the title-container left by 120px */
+    margin-right: -30px;
+    /* Cancel out the right padding of 30px */
+    width: calc(100% + 225px);
+    /* 120px (left) + 30px (right) = 150px extra */
+}
+
+
+
+
+
+/* key science on about page */
+
+
+#key-science .content-area p {
+    margin-bottom: 30px;
+}
+
+#key-science .title-container {
+    margin-bottom: 60px;
+}
+
+
+/* Fade-in-up animation */
+/* Initial hidden state */
+[data-fade] {
+    opacity: 0;
+    transform: translateY(20px);
+}
+
+/* Animation trigger (clean) */
+.fade-in-up {
+    animation: fadeInUp 1.2s ease-out forwards;
+}
+
+@keyframes fadeInUp {
+    from {
+        opacity: 0;
+        transform: translateY(20px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+
+
+@media (max-width: 768px) {
+    .section-card {
+        padding: 20px;
+    }
+}

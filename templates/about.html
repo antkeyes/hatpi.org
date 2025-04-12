@@ -9,27 +9,29 @@
     <link rel="icon" href="/static/images/favicon.png" type="image/x-icon">
 </head>
 
-<body>
-    <!-- Top banner -->
-    <header id="about-header">
-        <a href="/" id="home-link">
-            <img src="/static/images/hatpi_logo.jpeg" alt="Home" class="home-icon">
-        </a>
-    </header>
+<body class="about-page">
 
-    <!-- About page navigation -->
+    <!-- about page nav -->
     <div id="about-page-navigation">
-        <a href="#history" id="history-link" class="about-nav-link">History of HATPI</a>
-        <span class="vertical-pipe"></span>
-        <a href="#key-science" id="key-science-link" class="about-nav-link">Key Science</a>
-        <span class="vertical-pipe"></span>
-        <a href="#technical-specifications" id="technical-specifications-link" class="about-nav-link">Technical Specifications</a>
-        <span class="vertical-pipe"></span>
-        <a href="#photo-gallery" id="photo-gallery-link" class="about-nav-link">Photo Gallery</a>
+        <a href="https://hatpi.org" class="nav-home-link">🏡</a>
+        <a href="#history" id="history-link" class="about-nav-link">
+            <img src="/static/icons/history.svg" alt="History Icon" class="nav-icon">
+            History of HATPI</a>
+        <a href="#key-science" id="key-science-link" class="about-nav-link">
+            <img src="/static/icons/science.svg" alt="Science Icon" class="nav-icon">
+            Key Science</a>
+        <a href="#technical-specifications" id="technical-specifications-link" class="about-nav-link">
+            <img src="/static/icons/gear.svg" alt="Gear Icon" class="nav-icon">
+            Technical
+            Specifications</a>
+        <a href="#photo-gallery" id="photo-gallery-link" class="about-nav-link">
+            <img src="/static/icons/photos.svg" alt="Photos Icon" class="nav-icon">
+            Photo Gallery</a>
     </div>
 
+
     <main>
-        <!-- The History of HATPI Section -->
+        <!-- history of HATPI -->
         <section id="history">
             <div class="history-container">
                 <div class="timeline-container">
@@ -43,20 +45,26 @@
                     </div>
                 </div>
 
-                <!-- History Content -->
+                <!-- history Content -->
                 <div class="history-content">
+                    <div class="title-container">
+                        <div class="title-row">
+                            <h1 class="section-title">History of HATPI</h1>
+                        </div>
+                        <p class="section-subtext">A timeline of our project's evolution.</p>
+                    </div>
                     <!-- projject inception Section -->
-                    <div>
+                    <div class="history-chunk">
                         <h2 id="inception">Project Inception</h2>
                         <p>
-                            <!-- Your inception content here -->
+                            <!-- placeholder -->
                             Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut
                             labore et dolore magna aliqua.
                         </p>
                     </div>
 
-                    <!-- Spring 2016 Section -->
-                    <div>
+                    <!-- spring 2016 Section -->
+                    <div class="history-chunk">
                         <h2 id="spring-2016">HATPI Building Construction Near Completion</h2>
                         <div class="history-section-content">
                             <div class="history-text">
@@ -84,8 +92,8 @@
                         </div>
                     </div>
 
-                    <!-- Summer 2016 Section -->
-                    <div>
+                    <!-- summer 2016 Section -->
+                    <div class="history-chunk">
                         <h2 id="summer-2016">Finalization of HATPI Mount and Instrument Holder Design</h2>
                         <div class="history-section-content">
                             <div class="history-text">
@@ -109,8 +117,8 @@
                         </div>
                     </div>
 
-                    <!-- Winter 2017 Section -->
-                    <div>
+                    <!-- winter 2017 -->
+                    <div class="history-chunk">
                         <h2 id="winter-2017">Completion of HATPI Mount</h2>
                         <div class="history-section-content">
                             <div class="history-text">
@@ -126,8 +134,8 @@
                         </div>
                     </div>
 
-                    <!-- Summer 2017 Section -->
-                    <div>
+                    <!-- summer 2017  -->
+                    <div class="history-chunk">
                         <h2 id="summer-2017">Mount Installation and Electronics Setup</h2>
                         <div class="history-section-content">
                             <div class="history-text">
@@ -152,8 +160,8 @@
                         </div>
                     </div>
 
-                    <!-- Winter 2018 Section -->
-                    <div>
+                    <!-- sinter 2018  -->
+                    <div class="history-chunk">
                         <h2 id="winter-2018">On-Sky Testing Commences</h2>
                         <div class="history-section-content">
                             <div class="history-text">
@@ -174,108 +182,202 @@
                     </div>
                 </div>
             </div>
-            
+
 
         </section>
 
-        <!-- Key Science Section -->
+        <!-- key science section -->
+        <!-- key science section -->
         <section id="key-science">
-            <h1>Key Science</h1>
-            <p>
-              The HATPI project focuses on exploring the dynamic universe, observing phenomena such as transiting exoplanets, supernovae, variable stars, and near-Earth asteroids.
-	    </p>
-	    <h2>Transiting Exoplanets</h2>
-	    <p>
-	      By continuously monitoring a quarter of the full celestial sphere all night, every night, at high cadence, spatial resolution, and photometric precision, HATPI will be able to detect a large number of exoplanetary transit events. HATPI is an especially powerful tool for finding the infrequent transits of long period, cold Jupiters that can take years or more to orbit their stars.  
-	    </p>
-	    <h2>Transient Events</h2>
-	    <p>
-	      The high cadence and ultra-wide field-of-view of HATPI give it a unique sensitivity to fast astronomical transient events that may be missed by other time-domain surveys that observe the full sky at a much lower cadence. HATPI is expected to observe many bright transients, like nearby supernovae, Galactic novae, or kilonovae, providing valuable observations during the rise time before they are detected by other surveys.
-	    </p>
-	    <h2>Variable Stars</h2>
-	    <p>
-	      HATPI will produce long-term, high-cadence light curves for 10s of millions of stars, enabling the study of hundreds of thousands of variable stars. HATPI will be especially useful for detecting very long period stellar eclipsing binary systems, for routinely measuring the rotation periods of a vast number of sun-like stars, for detecting stellar flares, for studying stellar activity cycles, and for studying long-term mode changes in pulsating stars.
-	    </p>
-	    <h2>Moving Objects</h2>
-	    <p>
-              HATPI will observe 1000s of Near-Earth asteroids every year, and will be particularly sensitive to very small nearby asteroids that would otherwise go undetected. It will also be useful for providing light curves of asteroids that can be used to measure their rotation periods and characterize their shapes.	      
-	    </p>
+            <div class="section-card">
+                <!-- Top Container: Title Row + Subtext -->
+                <div class="title-container">
+                    <div class="title-row">
+                        <h1 class="section-title">Key Science</h1>
+                    </div>
+                    <p class="section-subtext">
+                        The HATPI project focuses on exploring the dynamic universe, observing phenomena such as
+                        transiting exoplanets,
+                        supernovae, variable stars, and near-Earth asteroids.
+                    </p>
+                </div>
+                <!-- Bottom Container: Main Content -->
+                <div class="content-area">
+                    <h2>Transiting Exoplanets</h2>
+                    <p>
+                        By continuously monitoring a quarter of the full celestial sphere all night, every night, at
+                        high cadence,
+                        spatial resolution, and photometric precision, HATPI will be able to detect a large number of
+                        exoplanetary transit
+                        events. HATPI is an especially powerful tool for finding the infrequent transits of long period,
+                        cold Jupiters
+                        that can take years or more to orbit their stars.
+                    </p>
+                    <h2>Transient Events</h2>
+                    <p>
+                        The high cadence and ultra-wide field-of-view of HATPI give it a unique sensitivity to fast
+                        astronomical transient
+                        events that may be missed by other time-domain surveys that observe the full sky at a much lower
+                        cadence. HATPI is
+                        expected to observe many bright transients, like nearby supernovae, Galactic novae, or
+                        kilonovae, providing valuable
+                        observations during the rise time before they are detected by other surveys.
+                    </p>
+                    <h2>Variable Stars</h2>
+                    <p>
+                        HATPI will produce long-term, high-cadence light curves for 10s of millions of stars, enabling
+                        the study of
+                        hundreds of thousands of variable stars. It will be especially useful for detecting very long
+                        period stellar eclipsing
+                        binary systems, routinely measuring the rotation periods of a vast number of sun-like stars,
+                        detecting stellar
+                        flares, and studying stellar activity cycles and long-term mode changes in pulsating stars.
+                    </p>
+                    <h2>Moving Objects</h2>
+                    <p>
+                        HATPI will observe 1000s of Near-Earth asteroids every year, and will be particularly sensitive
+                        to very small
+                        nearby asteroids that would otherwise go undetected. It will also be useful for providing light
+                        curves of asteroids
+                        that can be used to measure their rotation periods and characterize their shapes.
+                    </p>
+                </div>
+            </div>
         </section>
 
-        <!-- Technical Specifications Section -->
+        <!-- tech specs section -->
         <section id="technical-specifications">
-            <h1>Technical Specifications</h1>
+            <div class="section-card">
+                <!-- Top Container: Title Row + Subtext -->
+                <div class="title-container">
+                    <div class="title-row">
+                        <h1 class="section-title">Technical Specifications</h1>
+                    </div>
+                    <p class="section-subtext">
+                        Technical details and specifications for HATPI will be published here.
+                    </p>
+                </div>
+                <!-- Bottom Container: Content Area -->
+                <div class="content-area">
+                    <!-- Content goes here. For now, you might place a placeholder text -->
+                    <p>Coming Soon</p>
+                </div>
+            </div>
         </section>
+
 
         <!-- Photo Gallery Section -->
         <section id="photo-gallery">
-            <h1>Photo Gallery</h1>
-            <div class="photo-gallery">
-                <img src="/static/images/photo_gallery/1.jpg" alt="Gallery Image 1">
-                <img src="/static/images/photo_gallery/2.jpg" alt="Gallery Image 2">
-                <img src="/static/images/photo_gallery/3.jpg" alt="Gallery Image 3">
-                <img src="/static/images/photo_gallery/4.JPG" alt="Gallery Image 4">
-                <img src="/static/images/photo_gallery/5.jpg" alt="Gallery Image 5">
-                <img src="/static/images/photo_gallery/6.JPG" alt="Gallery Image 6">
+            <div class="section-card">
+                <!-- Title Container -->
+                <div class="title-container">
+                    <div class="title-row">
+                        <h1 class="section-title">Photo Gallery</h1>
+                    </div>
+                    <!-- <p class="section-subtext">Browse the gallery of images from HATPI.</p> -->
+                </div>
+                <!-- Content Area -->
+                <div class="content-area">
+                    <div class="photo-gallery">
+                        <img src="/static/images/photo_gallery/1.jpg" alt="Gallery Image 1">
+                        <img src="/static/images/photo_gallery/2.jpg" alt="Gallery Image 2">
+                        <img src="/static/images/photo_gallery/3.jpg" alt="Gallery Image 3">
+                        <img src="/static/images/photo_gallery/4.JPG" alt="Gallery Image 4">
+                        <img src="/static/images/photo_gallery/5.jpg" alt="Gallery Image 5">
+                        <img src="/static/images/photo_gallery/6.JPG" alt="Gallery Image 6">
+                    </div>
+                </div>
             </div>
         </section>
+
+        
+
     </main>
 
-    <!-- Script for dynamic active link -->
+    <!-- script for dynamic active link -->
     <script>
         document.addEventListener('DOMContentLoaded', () => {
             const navLinks = document.querySelectorAll('.about-nav-link');
-            const sections = document.querySelectorAll('section');
+            const sections = Array.from(document.querySelectorAll('section'));
 
-            // set initial active link
-            navLinks.forEach((link) => link.classList.remove('active-link'));
-            navLinks[0].classList.add('active-link');
+            // A small helper to remove all active classes
+            function clearActiveLinks() {
+                navLinks.forEach(link => link.classList.remove('active-link'));
+            }
 
-            // Create an IntersectionObserver to track sections
-            const observer = new IntersectionObserver(
-                (entries) => {
-                    entries.forEach((entry) => {
-                        const navLink = document.querySelector(
-                            `.about-nav-link[href="#${entry.target.id}"]`
-                        );
+            // The main scroll spy logic
+            function onScroll() {
+                let currentSection = sections[0]; // Default to the first section
 
-                        if (entry.isIntersecting) {
-                            navLinks.forEach((link) => link.classList.remove('active-link'));
-                            navLink.classList.add('active-link');
+                // We'll pick the section that has its top closest to (but not beyond) the middle of the viewport
+                const scrollMidpoint = window.innerHeight / 2;
+
+                for (const section of sections) {
+                    const rect = section.getBoundingClientRect();
+                    if (rect.top <= scrollMidpoint) {
+                        // We haven’t passed beyond this section’s top yet
+                        currentSection = section;
+                    } else {
+                        // As soon as a section’s top is below midpoint, break out of the loop
+                        break;
+                    }
+                }
+
+                // Update the active link
+                clearActiveLinks();
+                const newActiveLink = document.querySelector(`.about-nav-link[href="#${currentSection.id}"]`);
+                if (newActiveLink) {
+                    newActiveLink.classList.add('active-link');
+                }
+            }
+
+            // Handle click on a nav link (smooth-scroll to target)
+            navLinks.forEach(link => {
+                link.addEventListener('click', (e) => {
+                    const targetSelector = link.getAttribute('href') || "";
+                    if (targetSelector.startsWith("#")) {
+                        const targetEl = document.querySelector(targetSelector);
+                        if (targetEl) {
+                            e.preventDefault();
+                            // Adjust offset if you have a fixed header
+                            const yOffset = 150; // e.g., 150px offset from top
+                            const y = targetEl.getBoundingClientRect().top + window.pageYOffset - yOffset;
+                            window.scrollTo({ top: y, behavior: 'smooth' });
                         }
-                    });
-                },
-                { threshold: 0.1 } 
-            );
+                    }
+                });
+            });
 
-            // Observe all sections
-            sections.forEach((section) => observer.observe(section));
+            // Listen for scrolling events
+            window.addEventListener('scroll', onScroll, { passive: true });
+            // Also run once at load in case the user is already scrolled down
+            onScroll();
         });
+
 
         document.addEventListener('DOMContentLoaded', () => {
             const years = document.querySelectorAll(".timeline-year");
             const headers = document.querySelectorAll("#history .history-content h2");
 
-            // Position the years to align with the headers
+            // position the years to align with the headers
             headers.forEach((header, index) => {
                 const yearElement = years[index];
 
-                // Get the position of the header relative to the document
+                // position header relative to the document
                 const headerRect = header.getBoundingClientRect();
                 const headerPosition = headerRect.top + window.scrollY;
 
-                // Get the position of the timeline container relative to the document
+                //  timeline container relative to the document
                 const timelineContainer = document.querySelector('.timeline-container');
                 const timelineRect = timelineContainer.getBoundingClientRect();
                 const timelinePosition = timelineRect.top + window.scrollY;
 
-                // Calculate the top position for the year element
                 const yearTop = headerPosition - timelinePosition;
 
                 yearElement.style.top = `${yearTop}px`;
             });
 
-            // Intersection Observer to activate the years
+            // intersection Observer to activate the years
             const observerOptions = {
                 root: null,
                 threshold: 0.5,
@@ -294,17 +396,17 @@
                 });
             }, observerOptions);
 
-            // Observe the headers
+            // observe the header
             headers.forEach((header) => observer.observe(header));
         });
 
         document.querySelectorAll('.timeline-year').forEach(yearLink => {
             yearLink.addEventListener('click', function (event) {
-                event.preventDefault(); 
+                event.preventDefault();
 
                 const targetId = this.getAttribute('href').substring(1);
                 const targetElement = document.getElementById(targetId);
-                const headerOffset = 200; 
+                const headerOffset = 200;
 
                 if (targetElement) {
                     const elementPosition = targetElement.getBoundingClientRect().top + window.scrollY;

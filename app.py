@@ -1,244 +1,256 @@
-from flask import Flask, render_template, request, send_file, jsonify
-from flask_sqlalchemy import SQLAlchemy
-from sqlalchemy import cast
-from sqlalchemy.types import String
-import os
-import logging
-from astropy.io import fits
-import plotly.graph_objs as go
-from plotly.offline import plot
-from datetime import datetime
+# app.py
 
-logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
+import logging
+import numpy as np
+from datetime import datetime
+from flask import Flask, request, render_template
+
+from sqlalchemy import select
+from sqlalchemy.orm import joinedload
+from sqlalchemy.dialects import mysql  # For SQL logging
+from models import SessionLocal, StarCatalog, Frame, Astrometry
+from mywcs import create_simple_wcs
+from astropy.wcs import NoConvergence
 
 app = Flask(__name__)
 
-#error logging
+# Set the logging level and format.
 logging.basicConfig(
-    filename='/var/log/hatpi_lightcurves.log',
     level=logging.INFO,
-    format='%(asctime)s %(levelname)s: %(message)s'
+    format='%(asctime)s - %(levelname)s - %(message)s'
 )
 
-app.config['SQLALCHEMY_DATABASE_URI'] = 'mysql+mysqlconnector://hplc:hp11lightcurves_r@128.112.26.60/HPLC'
-app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
-db = SQLAlchemy(app)
+##################################
+#   Simple On-CCD Check Utility  #
+##################################
+def check_coordinate_on_ccd(ra_deg, dec_deg, wcs, margin=0,
+                            extent=(0, 2048, 0, 2048)):
+    """Check if (ra_deg, dec_deg) is on the CCD using a WCS projection."""
+    try:
+        xpix, ypix = wcs.all_world2pix(ra_deg, dec_deg, 1)
+    except NoConvergence:
+        return False
 
-class LightcurveFile(db.Model):
-    __tablename__ = 'lightcurve_files'
-    Gaia_DR2_ID = db.Column(db.BigInteger, primary_key=True)
-    IHUID = db.Column(db.SmallInteger)
-    OBJECT = db.Column(db.String(50))
-    branch = db.Column(db.Enum('aperphot','subphot'))
-    year = db.Column(db.Integer)
-    path_to_file = db.Column(db.String(255), nullable=False)
+    if np.isnan(xpix) or np.isnan(ypix):
+        return False
+
+    return (
+        (extent[0] - margin) < xpix < (extent[1] + margin)
+        and (extent[2] - margin) < ypix < (extent[3] + margin)
+    )
+
+######################################
+#   Stage 1: Find candidate fields   #
+######################################
+def query_fields_by_coordinate(ra_deg, dec_deg, margin=100,
+                               extent=(0, 2048, 0, 2048),
+                               crpix=(1024, 1024), pixsize=19.62):
+    """
+    Returns a list of field OBJECT names from StarCatalog that
+    might contain (ra_deg, dec_deg).
+    """
+
+    session = SessionLocal()
+    try:
+        stmt = (
+            select(StarCatalog.OBJECT, StarCatalog.RA, StarCatalog.DEC)
+            .group_by(StarCatalog.OBJECT)
+        )
+        rows = session.execute(stmt).all()
+    finally:
+        session.close()
+
+    fields_inccd = []
+    for (obj_name, cat_ra, cat_dec) in rows:
+        # cat_ra, cat_dec are in degrees already (pipeline style).
+        w_approx = create_simple_wcs((cat_ra, cat_dec), crpix=crpix, pixsize=pixsize)
+        # Quick coverage check
+        if check_coordinate_on_ccd(ra_deg, dec_deg, w_approx, margin=margin, extent=extent):
+            fields_inccd.append(obj_name)
+
+    return fields_inccd
 
 
-@app.route('/lightcurves', methods=['GET', 'POST'])
-def list_files():
-    search_query = request.args.get('search')
-    active_tab = request.args.get('active_tab', 'multiple-search-container')
+############################################
+#   Stage 2: Query frames in those fields  #
+############################################
+def query_frames_by_coordinate(ra_deg, dec_deg,
+                               date_min=None,
+                               date_max=None,
+                               date_type='datetime',
+                               margin=100,
+                               extent=(0, 2048, 0, 2048)):
+    """
+    1) Finds candidate fields via query_fields_by_coordinate.
+    2) Queries Frame & Astrometry in HPCALIB for those fields, exit_code=0,
+       plus the optional date filters.
+    3) Final on-CCD check using full WCS from astrometry.
+    """
 
-    app.logger.info(f"Received search query: {search_query}")
+    fields = query_fields_by_coordinate(ra_deg, dec_deg,
+                                        margin=margin, extent=extent)
+    app.logger.info(f"Found {len(fields)} possible fields for RA={ra_deg}, DEC={dec_deg}.")
 
-    results = []
+    if not fields:
+        return []
 
-    if search_query:
-        search_pattern = f"{search_query}%"
-        app.logger.info(f"Searching for files matching Gaia_DR2_ID: {search_pattern}")
+    session = SessionLocal()
+    try:
+        stmt = (
+            select(Frame)
+            .options(joinedload(Frame.astrometry))
+            .join(Frame.astrometry)
+            .where(Frame.OBJECT.in_(fields))
+            .where(Astrometry.exit_code == 0)
+        )
 
-        query = LightcurveFile.query.filter(cast(LightcurveFile.Gaia_DR2_ID, String).like(search_pattern))
+        app.logger.info(f"Date filter inputs => date_type='{date_type}', date_min={date_min}, date_max={date_max}")
 
-        files = query.limit(100).all()
+        if date_type == 'datetime':
+            if date_min is not None:
+                stmt = stmt.where(Frame.datetime_obs >= date_min)
+                app.logger.info(f"Applying Frame.datetime_obs >= {date_min}")
+            if date_max is not None:
+                stmt = stmt.where(Frame.datetime_obs <= date_max)
+                app.logger.info(f"Applying Frame.datetime_obs <= {date_max}")
+        elif date_type == 'JD':
+            if date_min is not None:
+                jdmin = date_min - 2400000
+                stmt = stmt.where(Frame.JD >= jdmin)
+                app.logger.info(f"Applying Frame.JD >= {jdmin} (from {date_min})")
+            if date_max is not None:
+                jdmax = date_max - 2400000
+                stmt = stmt.where(Frame.JD <= jdmax)
+                app.logger.info(f"Applying Frame.JD <= {jdmax} (from {date_max})")
+        else:
+            app.logger.warning(f"Unknown date_type: {date_type}")
 
-        for f in files:
-            filename = f"Gaia-DR2-{f.Gaia_DR2_ID}.epd.tfa.fits"
-            results.append({
-                'gaia_id': f.Gaia_DR2_ID,
-                'filename': filename
+        # 💥 TEMPORARY LIMIT TO TEST QUERY EXECUTION
+        stmt = stmt.limit(100)
+
+        # 🔍 SQL DIAGNOSTIC: Show full query
+        compiled_sql = stmt.compile(dialect=mysql.dialect(), compile_kwargs={"literal_binds": True})
+        app.logger.info(f"SQL Query:\n{compiled_sql}")
+
+        frames = session.execute(stmt).scalars().all()
+    finally:
+        session.close()
+
+    app.logger.info(f"Found {len(frames)} frames matching date/exit_code conditions.")
+
+    matched = []
+    for fr in frames:
+        w = fr.astrometry.wcs_transform
+        if w is None:
+            continue
+
+        onccd = check_coordinate_on_ccd(ra_deg, dec_deg, w, margin=0, extent=extent)
+        if onccd:
+            matched.append({
+                'IHUID': fr.IHUID,
+                'FNUM': fr.FNUM,
+                'OBJECT': fr.OBJECT,
+                'datetime_obs': fr.datetime_obs.isoformat() if fr.datetime_obs else None,
+                'EXPTIME': fr.EXPTIME,
+                'relpath': fr.relpath,
             })
 
-        if files:
-            for f in files:
-                app.logger.info(f"Found file Gaia_DR2_ID: {f.Gaia_DR2_ID}, path: {f.path_to_file}")
-        else:
-            app.logger.info("No files found matching the query.")
-    else:
-        app.logger.info("No search query provided.")
-
-    return render_template('lightcurves.html', files=results, search_query=search_query, active_tab=active_tab)
+    app.logger.info(f"Out of those, {len(matched)} frames are actually on the CCD.")
+    return matched
 
 
+##################################################
+#   Flask route: /lightcurves with date filters  #
+##################################################
+@app.route('/data', methods=['GET', 'POST'])
+def lightcurves():
+    if request.method == 'POST':
+        # 1) Parse RA/DEC from form
+        ra_str = request.form.get('ra', '').strip()
+        dec_str = request.form.get('dec', '').strip()
 
+        # Attempt float conversion
+        try:
+            ra_deg = float(ra_str)
+            dec_deg = float(dec_str)
+        except (TypeError, ValueError):
+            # Return the template with frames=[], but keep user input
+            return render_template('lightcurves.html',
+                                   frames=[],
+                                   error="Please provide valid numeric RA/DEC in degrees.",
+                                   ra=ra_str,
+                                   dec=dec_str,
+                                   date_type=request.form.get('date_type', 'datetime'),
+                                   date_min_input=request.form.get('date_min', ''),
+                                   date_max_input=request.form.get('date_max', ''))
 
-@app.route('/lightcurves/download/<int:gaia_id>')
-def download_file(gaia_id):
-    file_record = LightcurveFile.query.get_or_404(gaia_id)
-    file_path = file_record.path_to_file
+        date_type = request.form.get('date_type', 'datetime').strip()
+        date_min_input = request.form.get('date_min', '').strip()
+        date_max_input = request.form.get('date_max', '').strip()
 
-    # Adjust for NFS path only if it starts with the expected prefix
-    if file_path.startswith('/P'):
-        file_path_on_hatops = file_path.replace('/P', '/nfs/php2/ar0/P', 1)  # Replace only the first occurrence
-    else:
-        file_path_on_hatops = file_path
+        # 2) Convert date_min/date_max as needed
+        from datetime import datetime
+        date_min, date_max = None, None
+        if date_type == 'datetime':
+            # Expecting YYYY-MM-DD
+            if date_min_input:
+                try:
+                    date_min = datetime.strptime(date_min_input, '%Y-%m-%d')
+                except ValueError:
+                    pass
+            if date_max_input:
+                try:
+                    date_max = datetime.strptime(date_max_input, '%Y-%m-%d')
+                except ValueError:
+                    pass
+        elif date_type == 'JD':
+            # Expecting float
+            if date_min_input:
+                try:
+                    date_min = float(date_min_input)
+                except ValueError:
+                    pass
+            if date_max_input:
+                try:
+                    date_max = float(date_max_input)
+                except ValueError:
+                    pass
 
-    app.logger.info(f"sending file from: {file_path_on_hatops}")
-    
-
-    if os.path.exists(file_path_on_hatops):
-        return send_file(file_path_on_hatops, as_attachment=True)
-    else:
-        return "File not found on server.", 404
-    
-
-
-@app.route('/lightcurves/plot/<string:gaia_id>', methods=['GET'])
-def plot_lightcurve(gaia_id):
-    app.logger.info(f"Received request to plot light curve for Gaia_DR2_ID: {gaia_id}")
-    
-    # Validate and convert `gaia_id` to integer
-    try:
-        gaia_id_int = int(gaia_id)
-    except ValueError:
-        app.logger.error(f"Invalid Gaia_DR2_ID: {gaia_id}")
-        return jsonify({'error': 'Invalid Gaia_DR2_ID.'}), 400
-    
-    # Retrieve the file record from the database using Session.get()
-    file_record = db.session.get(LightcurveFile, gaia_id_int)
-    if not file_record:
-        app.logger.error(f"No file found for Gaia_DR2_ID: {gaia_id}")
-        return jsonify({'error': 'File not found in database.'}), 404
-    
-    #extract IHU ID and field name from DB record
-    ihu_id = file_record.IHUID
-    field_name = file_record.OBJECT
-
-    # Adjust the file path for NFS
-    file_path = file_record.path_to_file
-    file_path_on_hatops = file_path.replace('/P', '/nfs/php2/ar0/P', 1)
-    app.logger.info(f"Adjusted file path for Gaia_DR2_ID {gaia_id}: {file_path_on_hatops}")
-
-    if not os.path.exists(file_path_on_hatops):
-        app.logger.error(f"File not found on server: {file_path_on_hatops}")
-        return jsonify({'error': 'File not found on server.'}), 404
-
-    #extract date range from directory structure of path
-    segments = file_path_on_hatops.split('/')
-    #assuming second to last dir is always the date range dir
-    date_range_segment = segments[-2]
-    #split it on '-' and get start and end dates
-    start_date_str, end_date_str = date_range_segment.split('-')
-
-    try:
-        start_date = datetime.strptime(start_date_str, '%Y%m%d').strftime('%Y-%m-%d')
-        end_date = datetime.strptime(end_date_str, '%Y%m%d').strftime('%Y-%m-%d')
-        date_range = f"{start_date} to {end_date}"
-    except ValueError:
-        # Fallback in case of unexpected date format
-        date_range = f"{start_date_str} to {end_date_str}"
-
-    try:
-        # Open the FITS file and extract data
-        with fits.open(file_path_on_hatops) as hdul:
-            hdul.info()
-            data = hdul[1].data
-
-            # Extract relevant columns
-            time = data['TIME']           # Replace 't' with 'TIME'
-            mag = data['FITMAG0']         # Replace 'mag0' with 'FITMAG0'
-            err = data['ERR0']            # Replace 'err0' with 'ERR0'
-
-            # Shift time for better readability
-            time_shifted = time - time.min()
-
-        # Create an interactive scatter plot with error bars
-        trace = go.Scatter(
-            x=time_shifted,
-            y=mag,
-            mode='markers',
-            name='FITMAG0',
-            error_y=dict(
-                type='data',
-                array=err,
-                visible=True
-            ),
-            marker=dict(
-                size=5,
-                color='blue',
-                opacity=0.7
-            )
+        # 3) Perform the frames query
+        frames_found = query_frames_by_coordinate(
+            ra_deg, dec_deg,
+            date_min=date_min,
+            date_max=date_max,
+            date_type=date_type,
         )
 
-        # Define the layout of the plot
-        layout = go.Layout(
-            title=dict(
-                text=f'Gaia DR2 ID: {gaia_id}',
-                x=0.5,
-                xanchor='center',  # Anchor the title at its center
-                font=dict(
-                    size=20
-                )
-            ),
-            xaxis=dict(
-                title=f"Time (days since {time.min():.3f})",
-                titlefont=dict(
-                    size=16                 
-                ),
-                showgrid=True,                  # Keep grid lines visible
-                gridcolor='#E1DFD9',            # Light grid lines for subtlety
-                zeroline=False,                 # Remove bold zero line
-                linecolor='#A1A1A1',            # Axis line color
-                tickcolor='#A1A1A1',            # Tick color
-                ticks='outside',                # Ticks outside the plot area
-                showline=True                   # Show axis lines
-            ),
-            yaxis=dict(
-                title='Magnitude',
-                titlefont=dict(
-                    size=16
-                ),
-                autorange='reversed',           # Keep magnitudes inverted
-                showgrid=True,                  # Keep grid lines visible
-                gridcolor='#E1DFD9',            # Light grid lines
-                zeroline=False,                 # Remove bold zero line
-                linecolor='#A1A1A1',            # Axis line color
-                tickcolor='#A1A1A1',            # Tick color
-                ticks='outside',                # Ticks outside the plot area
-                showline=True                   # Show axis lines
-            ),
-            hovermode='x',                      # Hover along the x-axis
-            plot_bgcolor='#FCFBF9',             # Match the site's background color
-            paper_bgcolor='#FCFBF9',            # Match the site's background color
-            margin=dict(
-                l=60,                          # Adjust left margin for better spacing
-                r=20,                          # Adjust right margin
-                t=60,                          # Adjust top margin
-                b=60                           # Adjust bottom margin
+        if not frames_found:
+            return render_template(
+                'lightcurves.html',
+                frames=[],
+                message="No coverage found for that coordinate & date range.",
+                ra=ra_str,
+                dec=dec_str,
+                date_type=date_type,
+                date_min_input=date_min_input,
+                date_max_input=date_max_input
             )
+
+        # 4) Return the successful frames result
+        return render_template(
+            'lightcurves.html',
+            frames=frames_found,
+            ra=ra_str,  # keep original strings for display
+            dec=dec_str,
+            date_type=date_type,
+            date_min_input=date_min_input,
+            date_max_input=date_max_input
         )
 
-        # Combine trace and layout into a figure
-        fig = go.Figure(data=[trace], layout=layout)
-
-        # Convert the figure to JSON
-        graphJSON = fig.to_json()
-
-        app.logger.info(f"Successfully generated plot for Gaia_DR2_ID: {gaia_id}")
-
-        return jsonify({
-            'plot': graphJSON,
-            'ihu_id': ihu_id,
-            'field_name': field_name,
-            'date_range': date_range
-        })
-
-    except Exception as e:
-        app.logger.exception(f"Error generating plot for Gaia_DR2_ID {gaia_id}: {e}")
-        return jsonify({'error': 'Failed to generate plot.'}), 500
-
-
+    # GET => show empty form
+    return render_template('lightcurves.html', frames=None)
 
 
 
 if __name__ == '__main__':
-    app.run(host='127.0.0.1', port=5002, debug=True)
+    app.run(debug=True, port=5002)

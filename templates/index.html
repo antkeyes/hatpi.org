@@ -8,6 +8,8 @@
     <link href="https://fonts.googleapis.com/css2?family=Open+Sans:wght@300;400&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="/static/styles.css">
     <link rel="icon" href="/static/images/favicon.png" type="image/x-icon">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+
 
 </head>
 
@@ -31,7 +33,12 @@
             Your browser does not support the video tag
         </video>
         <!-- <img src="/static/images/instrument_night.JPG" alt="Project Banner Image" id="full-width-image"> -->
-
+        <!-- navigation links on top of the banner image -->
+        <nav id="top-links">
+            <a href="https://hatpi.org/data">HATPI Data</a>
+            <a href="">Publications</a>
+            <a href="https://hatpi.org/about">About</a>
+        </nav>
         <!-- overlay text in css grid layout -->
         <div class="text-overlay">
             <div class="text-column">
@@ -39,198 +46,240 @@
                 <p>A new lens on the universe</p>
                 <p>High-precision imaging of the full night sky</p>
             </div>
+
         </div>
-        <!-- navigation links under the banner image -->
-        <nav id="bottom-links">
-            <a href="https://hatpi.org/lightcurves">HATPI Data</a>
-            <a href="hatpi.org/publications">Publications</a>
-            <a href="https://hatpi.org/about">About</a>
-        </nav>
+
     </div>
 
 
     <main>
         <!-- about section -->
+        <!-- About Section -->
         <section id="about">
-            <!-- left column: mosaic -->
-            <div class="about-column">
-                <a href="/static/images/mosaic_highres.jpg" target="_blank">
-                    <img src="/static/images/mosaic_lowres_cropped.png" alt="High Res Mosaic" class="mosaic-image">
-                </a>
-            </div>
-            <!-- right column: header and description -->
-            <div class="about-column-right">
-                <h1>The HATPI Project<span class="vertical-pipe-h1"></span><a href="https://hatpi.org/about"
-                        class="learn-more">Learn More</a> </h1>
-                <p>In a single 45 second exposure, the HATPI instrument <br>observes the full night sky, in all
-                    directions, from the<br> zenith down to an elevation angle of 35 degrees, at a <br>
-                    spatial resolution of 20 arcseconds per pixel. The key <br>science aim of HATPI is to explore the
-                    variable sky,<br> including studying astrophysical transient events (cosmic<br>
-                    explosions), transiting exoplanets, variable stars, and<br> moving objects (near-Earth asteroids).
-                    HATPI is located at <br>
-                    Las Campanas Observatory in the Atacama Desert of<br> Chile <a
-                        href="https://maps.app.goo.gl/gZSJrSEGmgmbA47X9" class="coordinate-link"> | -29.010486,
-                        -70.701080</a>
-                </p>
-                <img src="/static/images/three_about_pics.jpeg" alt="three about pics" class="three-about-pics">
-                <a href="https://hatpi.org/about#photo-gallery" class="photo-gallery-link">View Photo Gallery</a>
-
+            <div class="section-card">
+                <!-- Top Container: Title Row + Subtext -->
+                <div class="title-container">
+                    <div class="title-row">
+                        <h1 class="section-title">The HATPI Project</h1>
+                        <a href="https://hatpi.org/about" class="visit-button">Learn More</a>
+                    </div>
+                    <p class="section-subtext">
+                        In a single 45 second exposure, the HATPI instrument observes the full night sky, in all
+                        directions,
+                        from the zenith down to an elevation angle of 35 degrees, at a spatial resolution of 20
+                        arcseconds per pixel.
+                        The key science aim of HATPI is to explore the variable sky, including studying astrophysical
+                        transient events
+                        (cosmic explosions), transiting exoplanets, variable stars, and moving objects (near-Earth
+                        asteroids).
+                        HATPI is located at Las Campanas Observatory in the Atacama Desert of Chile<br>
+                        <a href="https://maps.app.goo.gl/gZSJrSEGmgmbA47X9" class="coordinate-link"> -29.010486,
+                            -70.701080</a>
+                    </p>
+                </div>
+                <!-- Bottom Container: Images Row -->
+                <div class="content-area">
+                    <div class="about-images-row">
+                        <a href="/static/images/telescope.jpg" target="_blank">
+                            <img class="rounded-corners" src="/static/images/telescope.jpg" alt="HATPI Telescope">
+                        </a>
+                        <a href="/static/images/mosaic_highres.jpg" target="_blank" class="mosaic-container">
+                            <img src="/static/images/mosaic_lowres_cropped.png" alt="High Res Mosaic">
+                        </a>
+                    </div>
+                </div>
             </div>
         </section>
 
-        <!-- light curves section on home page -->
-        <section id="light-curves">
-            <h1>Light Curves<span class="vertical-pipe-h1"></span><a
-                    href="https://hatpi.org/lightcurves" class="visit-page">Visit Page</a> </h1>
-            <p>Access the public HATPI database</p>
-            <a href="https://hatpi.org/lightcurves">
-                <img src="/static/images/light_curves_page.png" alt="Light curves website" class="light-curves-image">
-            </a>
+        <!-- Light Curves Section -->
+        <section id="light-curves" data-fade>
+            <div class="section-card">
+                <!-- Top Container: Title Row + Subtext -->
+                <div class="title-container">
+                    <div class="title-row">
+                        <h1 class="section-title">HATPI Data</h1>
+                        <a href="https://hatpi.org/data" class="visit-button">Visit Data Portal</a>
+                    </div>
+                    <p class="section-subtext">
+                        Access high-cadence photometric data for millions of stars across the full sky.
+                        Search, visualize, and download curated time-series observations from the HATPI telescope.
+                    </p>
+                </div>
+                <!-- Bottom Container: Features List -->
+                <div class="content-area lightcurves-content">
+                    <ul class="lightcurves-features">
+                        <li>✨ Full-sky coverage in 45-second cadence</li>
+                        <li>📈 Pre-processed and raw flux series</li>
+                        <li>🔍 Browse by coordinates, object type, or variability</li>
+                    </ul>
+                    <img src="/static/images/three_about_pics.jpeg" alt="three about pics" class="three-about-pics">
+                </div>
+            </div>
         </section>
+
+
+
+
+
 
         <!-- publications section on home page -->
-        <section id="publications">
-            <h1>Publications<span class="vertical-pipe-h1"></span><a href="https://hatpi.org/publications"
-                    class="coming-soon">Coming Soon</a> </h1>
+        <section id="publications" data-fade>
+            <div class="section-card">
+                <!-- Top Container: Title Row + Subtext -->
+                <div class="title-container">
+                    <div class="title-row">
+                        <h1 class="section-title">Publications</h1>
+                        <!-- Optional button if desired, for example:
+                  <a href="https://hatpi.org/publications" class="visit-button">View Publications</a>
+                  -->
+                    </div>
+                    <p class="section-subtext">
+                        Explore our published work detailing research methods, findings, and results from the HATPI
+                        project.
+                    </p>
+                </div>
+                <!-- Bottom Container: Main Publications Content -->
+                <div class="content-area publications-content">
+                    <!-- Replace the content below with your grid or list of publications -->
+                    <a href="https://hatpi.org" class="visit-button">Coming Soon</a>
+                </div>
+            </div>
         </section>
 
+
         <!-- team section on home page -->
-        <section id="team">
+        <section id="team" data-fade>
             <h1>Team Members</h1>
-            <!-- First row grid -->
-            <div class="team-grid-row">
-                <!-- Team Member 1 -->
+            <div class="team-grid">
+
                 <a href="https://www.astro.princeton.edu/~gbakos/" class="team-member-link">
                     <div class="team-member">
-                        <img src="/static/images/gaspar.png" alt="Person 1">
+                        <img src="/static/images/gaspar.png" alt="Gáspár Bakos">
                         <p class="team-name">Gáspár Bakos</p>
                         <p class="team-role">Principal Investigator</p>
-                        <p class="team-profession">Professor</p> 
                     </div>
                 </a>
 
-                <!-- Team Member 2 -->
                 <a href="https://ingenieria.uai.cl/profesor/andres-jordan/" class="team-member-link">
                     <div class="team-member">
-                        <img src="/static/images/andres.jpg" alt="Person 2">
+                        <img src="/static/images/andres.png" alt="Andrés Jordán">
                         <p class="team-name">Andrés Jordán</p>
                         <p class="team-role">co-PI</p>
-                        <p class="team-profession">Professor</p> 
                     </div>
                 </a>
 
-                <!-- Team Member 3 -->
                 <a href="https://www.astro.princeton.edu/~jhartman/" class="team-member-link">
                     <div class="team-member">
-                        <img src="/static/images/joel.png" alt="Person 3">
+                        <img src="/static/images/joel.png" alt="Joel D. Hartman">
                         <p class="team-name">Joel D. Hartman</p>
                         <p class="team-role">Research Astronomer</p>
                     </div>
                 </a>
 
-            </div>
-
-            <!-- Second row grid -->
-            <div class="team-grid-row">
-                <!-- Team Member 4 -->
                 <a href="https://web.astro.princeton.edu/people/zoltan-csubry" class="team-member-link">
                     <div class="team-member">
-                        <img src="/static/images/zoli.png" alt="Person 4">
+                        <img src="/static/images/zoli.png" alt="Zoltán Csubry">
                         <p class="team-name">Zoltán Csubry</p>
                         <p class="team-role">Professional Specialist</p>
                     </div>
                 </a>
-                <!-- Team Member 5 -->
+
                 <a href="https://web.astro.princeton.edu/people/attila-b%C3%B3di" class="team-member-link">
                     <div class="team-member">
-                        <img src="/static/images/attila.png" alt="Person 5">
+                        <img src="/static/images/attila.png" alt="Attila Bódi">
                         <p class="team-name">Attila Bódi</p>
                         <p class="team-role">Professional Specialist</p>
                     </div>
                 </a>
-                <!-- Team Member 6 -->
+
                 <a href="https://www.physics.ox.ac.uk/our-people/talens" class="team-member-link">
                     <div class="team-member">
-                        <img src="/static/images/geert.png" alt="Person 6">
+                        <img src="/static/images/geert.png" alt="Geert Jan Talens">
                         <p class="team-name">Geert Jan Talens</p>
                         <p class="team-role">Postdoctoral Research Scholar</p>
                     </div>
                 </a>
+
             </div>
         </section>
 
-        <!-- Acknowledgments section on home page -->
-        <section id="acknowledgments">
-            <div class="acknowledgment-container">
-                <h1>Acknowledgments</h1>
-                <div class="acknowledgment-subline">
-                    <p>Generous funding provided by the Moore, Packard, and Mt. Cuba Astronomical foundations<br>Site
-                        hosting provided by Carnegie Science and Las Campanas Observatory</p>
+        <section id="acknowledgments" data-fade>
+            <div class="section-card">
+                <!-- Top Container: Title Row + Subtext -->
+                <div class="title-container">
+                    <div class="title-row">
+                        <h1 class="section-title">Acknowledgments</h1>
+                    </div>
+                    <p class="section-subtext">
+                        Generous funding provided by the Moore, Packard, and Mt. Cuba Astronomical foundations<br>
+                        Site hosting provided by Carnegie Science and Las Campanas Observatory
+                    </p>
                 </div>
-            </div>
+                <!-- Bottom Container: Funding Logos -->
+                <div class="content-area funding-logos">
+                    <!-- Row 1 -->
+                    <div class="logo-row logo-row-1">
+                        <a href="https://moore.org" target="_blank">
+                            <img src="/static/images/moore.png" alt="Moore Foundation">
+                        </a>
+                        <a href="https://packard.org" target="_blank">
+                            <img src="/static/images/packard.png" alt="Packard Foundation">
+                        </a>
+                        <a href="https://mtcubaastrofnd.org/" target="_blank">
+                            <img src="/static/images/mt_cuba_logo.png" alt="Mt. Cuba Astronomical Foundation">
+                        </a>
+                    </div>
 
-            <!-- funding foundation logos -->
-            <div class="funding-logos">
-                <!-- Row 1 -->
-                <div class="logo-row logo-row-1">
-                    <a href="https://moore.org" target="_blank">
-                        <img src="/static/images/moore.png" alt="Moore Foundation">
-                    </a>
-                    <a href="https://packard.org" target="_blank">
-                        <img src="/static/images/packard.png" alt="Packard Foundation">
-                    </a>
-                    <a href="https://mtcubaastrofnd.org/" target="_blank">
-                        <img src="/static/images/mt_cuba_logo.png" alt="Mt. Cuba Astronomical Foundation">
-                    </a>
-                </div>
+                    <!-- Horizontal bar (if needed for separation) -->
+                    <div class="horizontal-bar"></div>
 
-                <!-- Horizontal bar -->
-                <div class="horizontal-bar"></div>
+                    <!-- Row 2 -->
+                    <div class="logo-row logo-row-2">
+                        <a href="https://science.nasa.gov/planetary-defense/" target="_blank">
+                            <img src="/static/images/nasa_planetary_defense.png" alt="Nasa Planetary Defense">
+                        </a>
+                        <a href="https://lco.cl" target="_blank">
+                            <img src="/static/images/lco.png" alt="Carnegie Science">
+                        </a>
+                        <a href="https://www.uai.cl/" target="_blank">
+                            <img src="/static/images/adolfo_ibanez.png" alt="Universidad Adolfo Ibanez">
+                        </a>
+                    </div>
 
-                <!-- Row 2 -->
-                <div class="logo-row logo-row-2">
-                    <a href="https://science.nasa.gov/planetary-defense/" target="_blank">
-                        <img src="/static/images/nasa_planetary_defense.png" alt="Nasa Planetary Defense">
-                    </a>
-                    <a href="https://lco.cl" target="_blank">
-                        <img src="/static/images/lco.png" alt="Carnegie Science">
-                    </a>
-                    <a href="https://www.uai.cl/" target="_blank">
-                        <img src="/static/images/adolfo_ibanez.png" alt="Universidad Adolfo Ibanez">
-                    </a>
-                </div>
-
-                <!-- Row 3 -->
-                <div class="logo-row logo-row-3">
-                    <a href="https://web.astro.princeton.edu" target="_blank">
-                        <img src="/static/images/princeton_horizontal.jpeg" alt="Princeton Universite">
-                    </a>
+                    <!-- Row 3 -->
+                    <div class="logo-row logo-row-3">
+                        <a href="https://web.astro.princeton.edu" target="_blank">
+                            <img src="/static/images/princeton_horizontal.jpeg" alt="Princeton Universite">
+                        </a>
+                    </div>
                 </div>
             </div>
         </section>
 
+
+        <footer id="page-footer">
+            <div class="footer-icons">
+                <a href="https://facebook.com" target="_blank">
+                    <img src="/static/images/facebook.svg.png" alt="Facebook" class="footer-icon">
+                </a>
+                <a href="https://youtube.com" target="_blank">
+                    <img src="/static/images/youtube.svg.png" alt="YouTube" class="footer-icon">
+                </a>
+            </div>
+            <p>&copy; 2025 The HATPI Project</p>
+            <div class="princeton-logo">
+                <a href="https://web.astro.princeton.edu" target="_blank">
+                    <img src="/static/images/princeton_logo.png" alt="Princeton Logo" class="footer-icon">
+                </a>
+            </div>
+        </footer>
 
     </main>
 
-    <script src="/static/script.js"></script>
+    <script src="/static/scripts.js"></script>
 </body>
 
-<footer id="page-footer">
-    <div class="footer-icons">
-        <a href="https://facebook.com" target="_blank">
-            <img src="/static/images/facebook.svg.png" alt="Facebook" class="footer-icon">
-        </a>
-        <a href="https://youtube.com" target="_blank">
-            <img src="/static/images/youtube.svg.png" alt="YouTube" class="footer-icon">
-        </a>
-    </div>
-    <p>&copy; 2024 The HATPI Project</p>
-    <div class="princeton-logo">
-        <a href="https://web.astro.princeton.edu" target="_blank">
-            <img src="/static/images/princeton_logo.png" alt="Princeton Logo" class="footer-icon">
-        </a>
-    </div>
-</footer>
+
 
 
 
