@@ -14,9 +14,9 @@
     <!-- about page nav -->
     <div id="about-page-navigation">
         <a href="https://hatpi.org" class="nav-home-link">🏡</a>
-        <a href="#history" id="history-link" class="about-nav-link">
+        <!-- <a href="#history" id="history-link" class="about-nav-link">
             <img src="/static/icons/history.svg" alt="History Icon" class="nav-icon">
-            History of HATPI</a>
+            History of HATPI</a> -->
         <a href="#key-science" id="key-science-link" class="about-nav-link">
             <img src="/static/icons/science.svg" alt="Science Icon" class="nav-icon">
             Key Science</a>
@@ -31,8 +31,8 @@
 
 
     <main>
-        <!-- history of HATPI -->
-        <section id="history">
+
+        <!-- <section id="history">
             <div class="history-container">
                 <div class="timeline-container">
                     <div class="timeline-bar">
@@ -45,7 +45,7 @@
                     </div>
                 </div>
 
-                <!-- history Content -->
+                
                 <div class="history-content">
                     <div class="title-container">
                         <div class="title-row">
@@ -53,17 +53,17 @@
                         </div>
                         <p class="section-subtext">A timeline of our project's evolution.</p>
                     </div>
-                    <!-- projject inception Section -->
+                    
                     <div class="history-chunk">
                         <h2 id="inception">Project Inception</h2>
                         <p>
-                            <!-- placeholder -->
+                            
                             Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut
                             labore et dolore magna aliqua.
                         </p>
                     </div>
 
-                    <!-- spring 2016 Section -->
+                    
                     <div class="history-chunk">
                         <h2 id="spring-2016">HATPI Building Construction Near Completion</h2>
                         <div class="history-section-content">
@@ -92,7 +92,7 @@
                         </div>
                     </div>
 
-                    <!-- summer 2016 Section -->
+                    
                     <div class="history-chunk">
                         <h2 id="summer-2016">Finalization of HATPI Mount and Instrument Holder Design</h2>
                         <div class="history-section-content">
@@ -117,7 +117,7 @@
                         </div>
                     </div>
 
-                    <!-- winter 2017 -->
+                    
                     <div class="history-chunk">
                         <h2 id="winter-2017">Completion of HATPI Mount</h2>
                         <div class="history-section-content">
@@ -134,7 +134,7 @@
                         </div>
                     </div>
 
-                    <!-- summer 2017  -->
+                    
                     <div class="history-chunk">
                         <h2 id="summer-2017">Mount Installation and Electronics Setup</h2>
                         <div class="history-section-content">
@@ -160,7 +160,7 @@
                         </div>
                     </div>
 
-                    <!-- sinter 2018  -->
+                    
                     <div class="history-chunk">
                         <h2 id="winter-2018">On-Sky Testing Commences</h2>
                         <div class="history-section-content">
@@ -184,7 +184,7 @@
             </div>
 
 
-        </section>
+        </section> -->
 
         <!-- key science section -->
         <!-- key science section -->
@@ -245,7 +245,7 @@
             </div>
         </section>
 
-        <!-- tech specs section -->
+        <!-- technical specifications section -->
         <section id="technical-specifications">
             <div class="section-card">
                 <!-- Top Container: Title Row + Subtext -->
@@ -254,18 +254,129 @@
                         <h1 class="section-title">Technical Specifications</h1>
                     </div>
                     <p class="section-subtext">
-                        Technical details and specifications for HATPI will be published here.
+                        Detailed instrument and site parameters for the HATPI observatory.
                     </p>
                 </div>
                 <!-- Bottom Container: Content Area -->
                 <div class="content-area">
-                    <!-- Content goes here. For now, you might place a placeholder text -->
-                    <p>Coming Soon</p>
+                    <!-- Location -->
+                    <div class="spec-group">
+                        <h2>Location</h2>
+                        <dl class="spec-list">
+                            <div class="spec-item">
+                                <dt>Site</dt>
+                                <dd>Las Campanas Observatory, Chile</dd>
+                            </div>
+                            <div class="spec-item">
+                                <dt>Latitude</dt>
+                                <dd>–29.01077 degrees</dd>
+                            </div>
+                            <div class="spec-item">
+                                <dt>Longitude</dt>
+                                <dd>–70.70081 degrees</dd>
+                            </div>
+                            <div class="spec-item">
+                                <dt>Altitude</dt>
+                                <dd>2294.7 meters</dd>
+                            </div>
+                        </dl>
+                    </div>
+
+                    <!-- Optical Array -->
+                    <div class="spec-group">
+                        <h2>Optical Array</h2>
+                        <dl class="spec-list">
+                            <div class="spec-item">
+                                <dt>Number of Lenses and Cameras</dt>
+                                <dd>64</dd>
+                            </div>
+                            <div class="spec-item">
+                                <dt>Lens Model</dt>
+                                <dd>Mitakon 154 millimeter f‑stop of 1.6</dd>
+                            </div>
+                            <div class="spec-item">
+                                <dt>Single‑Lens Aperture Diameter</dt>
+                                <dd>96 millimeters</dd>
+                            </div>
+                        </dl>
+                    </div>
+
+                    <!-- Detectors -->
+                    <div class="spec-group">
+                        <h2>Detectors</h2>
+                        <dl class="spec-list">
+                            <div class="spec-item">
+                                <dt>Camera</dt>
+                                <dd>Finger Lakes Instrumentation MicroLine ML230 paired with an E2V CCD230‑42 sensor
+                                </dd>
+                            </div>
+                            <div class="spec-item">
+                                <dt>Camera Dimensions</dt>
+                                <dd>2048 pixels by 2048 pixels</dd>
+                            </div>
+                            <div class="spec-item">
+                                <dt>Full‑Well Capacity</dt>
+                                <dd>150,000 electrons</dd>
+                            </div>
+                        </dl>
+                    </div>
+
+                    <!-- Field of View and Plate Scale -->
+                    <div class="spec-group">
+                        <h2>Field of View and Plate Scale</h2>
+                        <dl class="spec-list">
+                            <div class="spec-item">
+                                <dt>Single‑Camera Field of View</dt>
+                                <dd>11.21 degrees</dd>
+                            </div>
+                            <div class="spec-item">
+                                <dt>Plate Scale</dt>
+                                <dd>19.7 arc seconds per pixel</dd>
+                            </div>
+                            <div class="spec-item">
+                                <dt>Full‑Mosaic Field of View</dt>
+                                <dd>9,162 square degrees</dd>
+                            </div>
+                        </dl>
+                    </div>
+
+                    <!-- Filter and Exposure -->
+                    <div class="spec-group">
+                        <h2>Filter and Exposure</h2>
+                        <dl class="spec-list">
+                            <div class="spec-item">
+                                <dt>Filter</dt>
+                                <dd>Custom Asahi Sloan, from 430 to 890 nanometers
+                                </dd>
+                            </div>
+                            <div class="spec-item">
+                                <dt>Exposure Time</dt>
+                                <dd>30s and 45s</dd>
+                            </div>
+                        </dl>
+                    </div>
+
+                    <!-- Performance Limits -->
+                    <div class="spec-group">
+                        <h2>Performance Limits</h2>
+                        <dl class="spec-list">
+                            <div class="spec-item">
+                                <dt>Saturation Magnitude</dt>
+                                <dd>G ~ 9 magnitudes</dd>
+                            </div>
+                            <div class="spec-item">
+                                <dt>Scintillation Noise at 45 Seconds</dt>
+                                <dd>~ 3 millimagnitudes</dd>
+                            </div>
+                        </dl>
+                    </div>
                 </div>
             </div>
         </section>
 
 
+
+        <!-- Photo Gallery Section -->
         <!-- Photo Gallery Section -->
         <section id="photo-gallery">
             <div class="section-card">
@@ -274,7 +385,6 @@
                     <div class="title-row">
                         <h1 class="section-title">Photo Gallery</h1>
                     </div>
-                    <!-- <p class="section-subtext">Browse the gallery of images from HATPI.</p> -->
                 </div>
                 <!-- Content Area -->
                 <div class="content-area">
@@ -288,9 +398,18 @@
                     </div>
                 </div>
             </div>
+
+            <!-- lightbox overlay -->
+            <div class="lightbox-overlay" id="lightbox">
+                <span class="lightbox-close" id="lightbox-close">&times;</span>
+                <span class="lightbox-nav lightbox-prev" id="lightbox-prev">&#10094;</span>
+                <img class="lightbox-image" id="lightbox-image" src="" alt="">
+                <span class="lightbox-nav lightbox-next" id="lightbox-next">&#10095;</span>
+            </div>
         </section>
 
-        
+
+
 
     </main>
 
@@ -424,6 +543,64 @@
 
 
     </script>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const images = Array.from(document.querySelectorAll('.photo-gallery img'));
+            const lightbox = document.getElementById('lightbox');
+            const lbImage = document.getElementById('lightbox-image');
+            let currentIndex = 0;
+
+            function showLightbox(index) {
+                currentIndex = index;
+                lbImage.src = images[currentIndex].src;
+                lbImage.alt = images[currentIndex].alt;
+                lightbox.classList.add('active');
+            }
+
+            function closeLightbox() {
+                lightbox.classList.remove('active');
+            }
+
+            function showNext() {
+                currentIndex = (currentIndex + 1) % images.length;
+                lbImage.src = images[currentIndex].src;
+            }
+
+            function showPrev() {
+                currentIndex = (currentIndex - 1 + images.length) % images.length;
+                lbImage.src = images[currentIndex].src;
+            }
+
+            images.forEach((img, i) => {
+                img.style.cursor = 'pointer';
+                img.addEventListener('click', () => showLightbox(i));
+            });
+
+            document.getElementById('lightbox-close')
+                .addEventListener('click', closeLightbox);
+
+            document.getElementById('lightbox-next')
+                .addEventListener('click', showNext);
+
+            document.getElementById('lightbox-prev')
+                .addEventListener('click', showPrev);
+
+            // close when clicking outside image
+            lightbox.addEventListener('click', e => {
+                if (e.target === lightbox) closeLightbox();
+            });
+
+            // keyboard navigation
+            document.addEventListener('keydown', e => {
+                if (!lightbox.classList.contains('active')) return;
+                if (e.key === 'ArrowRight') showNext();
+                if (e.key === 'ArrowLeft') showPrev();
+                if (e.key === 'Escape') closeLightbox();
+            });
+        });
+    </script>
+
 
 </body>
 

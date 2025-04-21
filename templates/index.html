@@ -54,10 +54,9 @@
 
     <main>
         <!-- about section -->
-        <!-- About Section -->
         <section id="about">
             <div class="section-card">
-                <!-- Top Container: Title Row + Subtext -->
+                <!-- Top Container: Title Row + Subtext + Mosaic Image -->
                 <div class="title-container">
                     <div class="title-row">
                         <h1 class="section-title">The HATPI Project</h1>
@@ -65,31 +64,31 @@
                     </div>
                     <p class="section-subtext">
                         In a single 45 second exposure, the HATPI instrument observes the full night sky, in all
-                        directions,
-                        from the zenith down to an elevation angle of 35 degrees, at a spatial resolution of 20
-                        arcseconds per pixel.
-                        The key science aim of HATPI is to explore the variable sky, including studying astrophysical
-                        transient events
-                        (cosmic explosions), transiting exoplanets, variable stars, and moving objects (near-Earth
-                        asteroids).
-                        HATPI is located at Las Campanas Observatory in the Atacama Desert of Chile<br>
-                        <a href="https://maps.app.goo.gl/gZSJrSEGmgmbA47X9" class="coordinate-link"> -29.010486,
-                            -70.701080</a>
+                        directions, from the zenith down to an elevation angle of 35 degrees, at a spatial resolution
+                        of 20 arcseconds per pixel. The key science aim of HATPI is to explore the variable sky,
+                        including studying astrophysical transient events (cosmic explosions), transiting exoplanets,
+                        variable stars, and moving objects (near‑Earth asteroids). HATPI is located at Las Campanas
+                        Observatory in the Atacama Desert of Chile<br>
+                        <a href="https://maps.app.goo.gl/gZSJrSEGmgmbA47X9" class="coordinate-link">
+                            -29.010486, -70.701080
+                        </a>
                     </p>
+                    <a href="/static/images/mosaic_highres.jpg" target="_blank" class="mosaic-container">
+                        <img src="/static/images/mosaic_lowres_cropped.png"
+                            alt="High Resolution Mosaic of HATPI Sky Coverage" class="rounded-corners">
+                    </a>
                 </div>
-                <!-- Bottom Container: Images Row -->
+
+                <!-- Bottom Container: Full‑width Telescope Image -->
                 <div class="content-area">
-                    <div class="about-images-row">
-                        <a href="/static/images/telescope.jpg" target="_blank">
-                            <img class="rounded-corners" src="/static/images/telescope.jpg" alt="HATPI Telescope">
-                        </a>
-                        <a href="/static/images/mosaic_highres.jpg" target="_blank" class="mosaic-container">
-                            <img src="/static/images/mosaic_lowres_cropped.png" alt="High Res Mosaic">
-                        </a>
-                    </div>
+                    <a href="/static/images/telescope.jpg" target="_blank">
+                        <img src="/static/images/telescope.jpg" alt="HATPI Telescope at the Observatory"
+                            class="rounded-corners">
+                    </a>
                 </div>
             </div>
         </section>
+
 
         <!-- Light Curves Section -->
         <section id="light-curves" data-fade>
@@ -101,15 +100,17 @@
                         <a href="https://hatpi.org/data" class="visit-button">Visit Data Portal</a>
                     </div>
                     <p class="section-subtext">
-                        Access high-cadence photometric data for millions of stars across the full sky.
-                        Search, visualize, and download curated time-series observations from the HATPI telescope.
+                        Stitched light curves and high-resolution image stamps are <strong>coming soon</strong> for
+                        direct viewing and download. <strong>In the meantime</strong>, explore HATPI’s observations
+                        using our frame search feature.
                     </p>
                 </div>
                 <!-- Bottom Container: Features List -->
                 <div class="content-area lightcurves-content">
                     <ul class="lightcurves-features">
+                        <li>Coming soon</li>
                         <li>✨ Full-sky coverage in 45-second cadence</li>
-                        <li>📈 Pre-processed and raw flux series</li>
+                        <li>📈 Pre-processed and raw light curves, image stamps</li>
                         <li>🔍 Browse by coordinates, object type, or variability</li>
                     </ul>
                     <img src="/static/images/three_about_pics.jpeg" alt="three about pics" class="three-about-pics">

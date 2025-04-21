@@ -22,10 +22,12 @@ main {
     min-height: 100vh;
     background-image: linear-gradient(to top, #F4F2EE 0%, white 100%);
     background-repeat: no-repeat;
-    background-attachment: fixed; /* stays in place during scroll */
-    background-size: cover;       /* ensures no tiling */
-  }
-  
+    background-attachment: fixed;
+    /* stays in place during scroll */
+    background-size: cover;
+    /* ensures no tiling */
+}
+
 
 
 
@@ -59,7 +61,7 @@ p {
     /* cover the container without distortion */
     object-position: center;
     /* center the video vertically to crop evenly from top and bottom */
-    
+
 }
 
 
@@ -287,20 +289,77 @@ main {
 /* ==========================================================================
      Bottom Area: Content Area (Images for About, Feature List for Light Curves)
      ========================================================================== */
-.content-area {
-    margin-top: 24px;
-}
-
-/* ==========================================================================
-     ABOUT SECTION SPECIFIC STYLES
-     ========================================================================== */
-
+/* ─────────────────────────────────────────────────────────── */
+/* About section card spacing                                */
+/* ─────────────────────────────────────────────────────────── */
 #about .section-card {
     margin-top: 60px;
 }
 
+/* ─────────────────────────────────────────────────────────── */
+/* Two‑column title + subtext + mosaic layout                */
+/* ─────────────────────────────────────────────────────────── */
+#about .title-container {
+    display: flex;
+    flex-wrap: wrap;               /* stack on narrow screens */
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 1rem;                     /* space between text and image */
+}
 
-/* Image row container */
+#about .title-container .section-subtext {
+    flex: 1 1 60%;                 /* grow/shrink, base 60% width */
+    min-width: 200px;              /* don’t shrink past this */
+    margin: 0;                     /* remove default margins */
+}
+
+/* Mosaic sits in the title-container, right of the text */
+#about .mosaic-container {
+    flex: 0 0 25%;                 /* fixed 35% width */
+    max-width: 200px;
+    align-self: flex-start;        /* align top of text block */
+    overflow: visible;             /* from your existing rule */
+    position: relative;    
+    margin-right: 20px;
+    margin-left: 30px;
+    transform: translateY(-40px);
+}
+
+#about .mosaic-container img {
+    width: 100%;
+    height: auto;
+    object-fit: cover;
+    border-radius: inherit;        /* use same rounding as card */
+    display: block;
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+    transform-origin: center center;
+}
+
+#about .mosaic-container img:hover {
+    transform: perspective(1000px) scale(1.15);
+    z-index: 10;
+}
+
+/* ─────────────────────────────────────────────────────────── */
+/* Full‑width telescope image styling                        */
+/* ─────────────────────────────────────────────────────────── */
+#about .content-area {
+    margin-top: 1rem;              /* space below the title-container */
+    padding: 0.5rem;               /* your card’s padding */
+}
+
+#about .content-area img {
+    display: block;
+    width: 100%;
+    height: auto;
+    object-fit: cover;
+    border-radius: 10px;
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.2);
+}
+
+/* ─────────────────────────────────────────────────────────── */
+/* Legacy image‑row styles (optional; remove if unused)       */
+/* ─────────────────────────────────────────────────────────── */
 .about-images-row {
     display: flex;
     gap: 24px;
@@ -309,51 +368,31 @@ main {
     flex-wrap: nowrap;
 }
 
-/* Links wrapping each image */
 .about-images-row a {
     flex: 1 1 0;
     max-width: 500px;
     overflow: hidden;
 }
 
-/* Images inside the row */
 .about-images-row img {
     width: 100%;
     height: 300px;
     object-fit: contain;
 }
 
-/* Rounded-corners variant */
 .about-images-row a img.rounded-corners {
     display: block;
     object-fit: cover;
     border-radius: 10px !important;
 }
 
-/* Additional styles for mosaic images if used */
-.mosaic-container {
-    overflow: visible;
-    /* Ensures any hover effect overflow is visible */
-}
-
+/* Legacy mosaic hover overrides */
 .about-images-row a.mosaic-container {
     overflow: visible !important;
     position: relative;
-    /* Allows z-index to work for hover effects */
 }
 
-/* Hover effect on mosaic images */
-.mosaic-container img {
-    transition: transform 0.3s ease, box-shadow 0.3s ease;
-    transform-origin: center center;
-}
-
-.mosaic-container img:hover {
-    transform: perspective(1000px) scale(1.15);
-    z-index: 10;
-}
-
-/* Optional mosaic image styling (if used separately) */
+/* Optional standalone mosaic-image rules */
 .mosaic-image {
     width: 100%;
     height: auto;
@@ -366,9 +405,25 @@ main {
     transform: scale(1.05);
 }
 
+
 /* ==========================================================================
      LIGHT CURVES SECTION SPECIFIC STYLES
      ========================================================================== */
+
+
+.lightcurves-features li:first-child {
+    display: inline-block;
+    /* Only occupy the space it needs */
+    padding: 0.25em 0.5em;
+    /* Adjust padding for spacing around text */
+    border: 2px solid #a4c9a4;
+    /* Green border */
+    border-radius: 8px;
+    /* Rounded corners */
+}
+
+
+
 .lightcurves-features {
     list-style: none;
     padding: 0;
@@ -461,7 +516,7 @@ main {
 .visit-button {
     display: inline-block;
     padding: 12px 24px;
-    border: 1px solid #ccc;
+    border: 1px solid #a4c9a4;
     border-radius: 9999px;
     font-size: 0.95em;
     font-weight: 500;
@@ -998,6 +1053,9 @@ section {
     text-align: left;
 }
 
+#key-science {
+    margin-top: 90px;
+}
 
 #history {
     margin-top: 90px;
@@ -1005,6 +1063,76 @@ section {
     max-width: 1000px !important;
 
 }
+
+/* definition‑list grid inside each card */
+/* -------------------------------------------------------------------
+   Technical Specifications Section
+   ------------------------------------------------------------------- */
+
+/* Outer grid: auto‑fit two columns, collapse to one on narrow screens */
+#technical-specifications .content-area {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+    gap: 2rem;
+    margin-top: 1rem;
+}
+
+/* Card styling for each specification group */
+#technical-specifications .spec-group {
+    background-color: #ffffff;
+    border-radius: 12px;
+    padding: 1.5rem;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+#technical-specifications .spec-group:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.08);
+}
+
+/* Heading inside each card */
+#technical-specifications .spec-group h2 {
+    font-size: 1.3rem;
+    margin-bottom: 0.75rem;
+    color: #2c3e50;
+    border-bottom: 2px solid #e0e0e0;
+    padding-bottom: 0.5rem;
+}
+
+/* Definition list grid for label/value pairs */
+#technical-specifications .spec-group .spec-list {
+    display: grid;
+    grid-template-columns: 140px 1fr;
+    row-gap: 0.75rem;
+    column-gap: 1.5rem;
+    margin: 0;
+    padding: 0;
+}
+
+/* Let dt and dd participate directly in the grid */
+#technical-specifications .spec-group .spec-item {
+    display: contents;
+}
+
+/* Label styling */
+#technical-specifications .spec-group dt {
+    margin: 0;
+    font-weight: 600;
+    color: #333333;
+    text-align: left;
+    /* changed from right */
+}
+
+
+/* Value styling */
+#technical-specifications .spec-group dd {
+    margin: 0;
+    color: #555555;
+    line-height: 1.5;
+}
+
+
 
 section h1 {
     font-size: 1.8em;
@@ -1040,6 +1168,63 @@ section p {
     object-fit: cover;
     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
 }
+
+/* Lightbox overlay */
+.lightbox-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    background-color: rgba(0, 0, 0, 0.85);
+    display: none;
+    align-items: center;
+    justify-content: center;
+    z-index: 1000;
+}
+
+.lightbox-overlay.active {
+    display: flex;
+}
+
+/* The displayed image */
+.lightbox-image {
+    max-width: 90%;
+    max-height: 90%;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.6);
+}
+
+/* Close button */
+.lightbox-close {
+    position: absolute;
+    top: 2rem;
+    right: 2rem;
+    font-size: 2.5rem;
+    color: #fff;
+    cursor: pointer;
+    user-select: none;
+}
+
+/* Navigation arrows */
+.lightbox-nav {
+    position: absolute;
+    top: 50%;
+    transform: translateY(-50%);
+    font-size: 3rem;
+    color: #fff;
+    cursor: pointer;
+    user-select: none;
+    padding: 0 1rem;
+}
+
+.lightbox-prev {
+    left: 2rem;
+}
+
+.lightbox-next {
+    right: 2rem;
+}
+
 
 @media (max-width: 800px) {
     .photo-gallery {
