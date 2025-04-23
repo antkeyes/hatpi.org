@@ -128,6 +128,23 @@ class Astrometry(Base):
 
         return w
 
+
+class CalFrameQuality(Base):
+    __tablename__ = 'calframe_quality'
+    IHUID           = Column(Integer, primary_key=True)
+    FNUM            = Column(Integer, primary_key=True)
+    calframe_median = Column(Float)   # sky background in ADU
+
+# models.py  – add after CalFrameQuality
+class FrameQuality(Base):
+    __tablename__ = 'frame_quality'
+
+    IHUID    = Column(Integer, primary_key=True)
+    FNUM     = Column(Integer, primary_key=True)
+    MOONDIST = Column(Float)   # Moon distance in degrees
+    SUNELEV  = Column(Float)   # Sun elevation in degrees
+
+
 # ----------------------------------------------------------------
 # 5) Create an engine & Session that the rest of the app can use
 # ----------------------------------------------------------------

@@ -6,10 +6,10 @@ import math
 from datetime import datetime
 from flask import Flask, request, render_template, jsonify
 
-from sqlalchemy import select
+from sqlalchemy import select, and_
 from sqlalchemy.orm import joinedload
 from sqlalchemy.dialects import mysql  # For SQL logging
-from models import SessionLocal, StarCatalog, Frame, Astrometry, CalFrameQuality
+from models import SessionLocal, StarCatalog, Frame, Astrometry, CalFrameQuality, FrameQuality
 from mywcs import create_simple_wcs
 from astropy.wcs import NoConvergence
 
@@ -103,14 +103,22 @@ def query_frames_by_coordinate(ra_deg, dec_deg,
         stmt = (
             select(
                 Frame,
-                CalFrameQuality.calframe_median.label('sky_bg')
+                CalFrameQuality.calframe_median.label('sky_bg'),
+                FrameQuality.MOONDIST.label('moondist'),
+                FrameQuality.SUNELEV.label('sunelev'),
             )
             .options(joinedload(Frame.astrometry))
             .join(Frame.astrometry)
             .outerjoin(
                 CalFrameQuality,
-                (Frame.IHUID == CalFrameQuality.IHUID) &
-                (Frame.FNUM  == CalFrameQuality.FNUM)
+                and_(Frame.IHUID == CalFrameQuality.IHUID,
+                    Frame.FNUM  == CalFrameQuality.FNUM)
+            )
+            #outer join for moon/sun data
+            .outerjoin(
+                FrameQuality,
+                and_(Frame.IHUID == FrameQuality.IHUID,
+                     Frame.FNUM == FrameQuality.FNUM)
             )
             .where(Frame.OBJECT.in_(fields))
             .where(Astrometry.exit_code == 0)
@@ -153,6 +161,7 @@ def query_frames_by_coordinate(ra_deg, dec_deg,
 
         # 2d) Execute and fetch rows: each row is (Frame, sky_bg)
         rows = session.execute(stmt).all()
+        
 
     finally:
         session.close()
@@ -161,30 +170,22 @@ def query_frames_by_coordinate(ra_deg, dec_deg,
 
     # 3) Final on‑CCD check and build result list
     matched = []
-    for fr, sky_bg in rows:
+    for fr, sky_bg, moondist, sunelev in rows:
         w = fr.astrometry.wcs_transform
-        if w is None:
-            continue
-
-        onccd = check_coordinate_on_ccd(
-            ra_deg, dec_deg, w,
-            margin=0
-        )
-        if onccd:
+        if w is None: continue
+        if check_coordinate_on_ccd(ra_deg, dec_deg, w, margin=0):
             matched.append({
-                'IHUID':        fr.IHUID,
-                'FNUM':         fr.FNUM,
-                'OBJECT':       fr.OBJECT,
-                'datetime_obs': fr.datetime_obs.isoformat()
-                                if fr.datetime_obs else None,
-                'EXPTIME':      fr.EXPTIME,
-                'relpath':      fr.relpath,
-                'sky_bg':       sky_bg,
+                'IHUID':      fr.IHUID,
+                'FNUM':       fr.FNUM,
+                'OBJECT':     fr.OBJECT,
+                'datetime_obs': fr.datetime_obs.isoformat() if fr.datetime_obs else None,
+                'EXPTIME':    fr.EXPTIME,
+                'relpath':    fr.relpath,
+                'sky_bg':     sky_bg,
+                'moondist':   moondist,
+                'sunelev':    sunelev,
             })
-
-    app.logger.info(f"Out of those, {len(matched)} frames are actually on the CCD.")
     return matched
-
 
 
 ##################################################
@@ -392,6 +393,8 @@ def data_api():
             "datetime_obs":       dt,
             "exptime":            f.get("EXPTIME"),
             "sky_background_adu": f.get("sky_bg"),
+            "moon_distance":     f.get("moondist"),
+            "sun_elevation":     f.get("sunelev"),
             "download_url":       f"https://hatpi.org/data/{f.get('relpath')}"
         })
 
@@ -402,13 +405,15 @@ def data_api():
         writer = csv.writer(output)
         writer.writerow([
             "object", "ihuid", "fnum", "datetime_obs",
-            "exptime", "sky_background_adu", "download_url"
+            "exptime", "sky_background_adu", "moon_distance", "sun_elevation",
+            "download_url"
         ])
         for row in results:
             writer.writerow([
                 row["object"], row["ihuid"], row["fnum"],
                 row["datetime_obs"], row["exptime"],
-                row["sky_background_adu"], row["download_url"]
+                row["sky_background_adu"], row["moon_distance"], row["sun_elevation"],
+                row["download_url"]
             ])
         return Response(output.getvalue(), mimetype='text/csv')
 

@@ -146,6 +146,8 @@
                   <th>Observation Time (UTC)</th>
                   <th>EXPTIME</th>
                   <th>Sky Background (ADU)</th>
+                  <th>Moon Distance</th>
+                  <th>Sun Elevation</th>
                 </tr>
               </thead>
               <tbody>
@@ -158,6 +160,9 @@
                   <td>{{ f.datetime_obs }}</td>
                   <td>{{ f.EXPTIME }}</td>
                   <td>{{ f.sky_bg|default('N/A') }}</td>
+                  <td>{{ f.moondist|default('N/A') }}</td>
+                  <td>{{ f.sunelev|default('N/A') }}</td>
+
                 </tr>
                 {% endfor %}
               </tbody>
@@ -184,7 +189,7 @@
     <div class="cli-section">
       <h1 class="section-title">Query the API from Your Terminal</h1>
       <div class="cli-query-container">
-    
+
         <div class="cli-block">
           <pre id="pre-json" class="cli-query">
     # JSON
@@ -195,7 +200,7 @@
           </pre>
           <button class="copy-button" data-target="pre-json">Copy JSON 📋</button>
         </div>
-    
+
         <div class="cli-block">
           <pre id="pre-csv" class="cli-query">
     # CSV
@@ -206,7 +211,7 @@
           </pre>
           <button class="copy-button" data-target="pre-csv">Copy CSV 📋</button>
         </div>
-    
+
         <div class="cli-block">
           <pre id="pre-votable" class="cli-query">
     # VOTable
@@ -217,10 +222,10 @@
           </pre>
           <button class="copy-button" data-target="pre-votable">Copy VOTable 📋</button>
         </div>
-    
+
       </div>
     </div>
-    
+
 
 
 
