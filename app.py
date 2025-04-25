@@ -1,32 +1,46 @@
-# app.py
 
 import logging
+import os
 import numpy as np
 import math
 from datetime import datetime
-from flask import Flask, request, render_template, jsonify
-
+from flask import Flask, request, render_template, jsonify, send_file, Response
 from sqlalchemy import select, and_
 from sqlalchemy.orm import joinedload
 from sqlalchemy.dialects import mysql  # For SQL logging
-from models import SessionLocal, StarCatalog, Frame, Astrometry, CalFrameQuality, FrameQuality
+from models import (
+    SessionLocal,
+    StarCatalog,
+    Frame,
+    Astrometry,
+    CalFrameQuality,
+    FrameQuality,
+)
 from mywcs import create_simple_wcs
 from astropy.wcs import NoConvergence
+from astropy.io import fits as afits
+from io import StringIO, BytesIO
+import csv
+from astropy.table import Table
+
+# Base directory where your RED FITS sub-folders live
+FITS_ROOT = "/nfs/php2/ar3/P/HP1/REDUCTION/RED"
 
 app = Flask(__name__)
 
-# Set the logging level and format.
+# -----------------------------------------------------------------------------
+# Logging configuration
+# -----------------------------------------------------------------------------
 logging.basicConfig(
     level=logging.INFO,
-    format='%(asctime)s - %(levelname)s - %(message)s'
+    format="%(asctime)s - %(levelname)s - %(message)s"
 )
 
-##################################
-#   Simple On-CCD Check Utility  #
-##################################
-def check_coordinate_on_ccd(ra_deg, dec_deg, wcs, margin=0,
-                            extent=(0, 2048, 0, 2048)):
-    """Check if (ra_deg, dec_deg) is on the CCD using a WCS projection."""
+# -----------------------------------------------------------------------------
+# Utility: check if a world coordinate is on the CCD via WCS
+# -----------------------------------------------------------------------------
+def check_coordinate_on_ccd(ra_deg, dec_deg, wcs, margin=0, extent=(0, 2048, 0, 2048)):
+    """Return True if (ra_deg, dec_deg) maps inside the CCD bounds."""
     try:
         xpix, ypix = wcs.all_world2pix(ra_deg, dec_deg, 1)
     except NoConvergence:
@@ -40,17 +54,15 @@ def check_coordinate_on_ccd(ra_deg, dec_deg, wcs, margin=0,
         and (extent[2] - margin) < ypix < (extent[3] + margin)
     )
 
-######################################
-#   Stage 1: Find candidate fields   #
-######################################
-def query_fields_by_coordinate(ra_deg, dec_deg, margin=100,
-                               extent=(0, 2048, 0, 2048),
+# -----------------------------------------------------------------------------
+# Stage 1: find candidate fields via simple WCS projection
+# -----------------------------------------------------------------------------
+def query_fields_by_coordinate(ra_deg, dec_deg, margin=100, extent=(0, 2048, 0, 2048),
                                crpix=(1024, 1024), pixsize=19.62):
     """
-    Returns a list of field OBJECT names from StarCatalog that
-    might contain (ra_deg, dec_deg).
+    Returns a list of StarCatalog.OBJECT names whose approximate TAN
+    projection might contain (ra_deg, dec_deg).
     """
-
     session = SessionLocal()
     try:
         stmt = (
@@ -61,331 +73,328 @@ def query_fields_by_coordinate(ra_deg, dec_deg, margin=100,
     finally:
         session.close()
 
-    fields_inccd = []
-    for (obj_name, cat_ra, cat_dec) in rows:
-        # cat_ra, cat_dec are in degrees already (pipeline style).
+    fields = []
+    for obj_name, cat_ra, cat_dec in rows:
         w_approx = create_simple_wcs((cat_ra, cat_dec), crpix=crpix, pixsize=pixsize)
-        # Quick coverage check
         if check_coordinate_on_ccd(ra_deg, dec_deg, w_approx, margin=margin):
-            fields_inccd.append(obj_name)
+            fields.append(obj_name)
+    return fields
 
-    return fields_inccd
-
-
-############################################
-#   Stage 2: Query frames in those fields  #
-############################################
+# -----------------------------------------------------------------------------
+# Stage 2: full database query + on-CCD filtering
+# -----------------------------------------------------------------------------
 def query_frames_by_coordinate(ra_deg, dec_deg,
-                               date_min=None,
-                               date_max=None,
-                               date_type='datetime',
-                               margin=100,
-                               extent=(0, 2048, 0, 2048)):
+                               date_min=None, date_max=None,
+                               date_type="datetime",
+                               margin=100, extent=(0, 2048, 0, 2048)):
     """
-    1) Finds candidate fields via query_fields_by_coordinate.
-    2) Queries Frame, Astrometry, and CalFrameQuality (for sky background) in HPCALIB
-       for those fields, exit_code=0, plus the optional date filters.
-    3) Final on‑CCD check using full WCS from astrometry.
+    1) Use query_fields_by_coordinate to shortlist fields.
+    2) Query Frame ⟶ Astrometry ⟶ CalFrameQuality & FrameQuality for sky_bg, moondist, sunelev.
+    3) Do precise on-CCD check using full WCS.
+    Returns a list of dicts with all needed attributes.
     """
-
-    # 1) Find candidate fields
-    fields = query_fields_by_coordinate(ra_deg, dec_deg,
-                                        margin=margin, extent=extent)
+    fields = query_fields_by_coordinate(ra_deg, dec_deg, margin=margin, extent=extent)
     app.logger.info(f"Candidate fields: {fields}")
-    app.logger.info(f"Found {len(fields)} possible fields for RA={ra_deg}, DEC={dec_deg}.")
-
     if not fields:
         return []
 
     session = SessionLocal()
     try:
-        # 2) Build query: join Frame → Astrometry, then outer‑join CalFrameQuality
         stmt = (
             select(
                 Frame,
-                CalFrameQuality.calframe_median.label('sky_bg'),
-                FrameQuality.MOONDIST.label('moondist'),
-                FrameQuality.SUNELEV.label('sunelev'),
+                CalFrameQuality.calframe_median.label("sky_bg"),
+                FrameQuality.MOONDIST.label("moondist"),
+                FrameQuality.SUNELEV.label("sunelev"),
             )
             .options(joinedload(Frame.astrometry))
             .join(Frame.astrometry)
             .outerjoin(
                 CalFrameQuality,
-                and_(Frame.IHUID == CalFrameQuality.IHUID,
-                    Frame.FNUM  == CalFrameQuality.FNUM)
+                and_(
+                    Frame.IHUID == CalFrameQuality.IHUID,
+                    Frame.FNUM == CalFrameQuality.FNUM,
+                ),
             )
-            #outer join for moon/sun data
             .outerjoin(
                 FrameQuality,
-                and_(Frame.IHUID == FrameQuality.IHUID,
-                     Frame.FNUM == FrameQuality.FNUM)
+                and_(
+                    Frame.IHUID == FrameQuality.IHUID,
+                    Frame.FNUM == FrameQuality.FNUM,
+                ),
             )
             .where(Frame.OBJECT.in_(fields))
             .where(Astrometry.exit_code == 0)
         )
 
-        app.logger.info(
-            f"Date filter inputs => date_type='{date_type}', "
-            f"date_min={date_min}, date_max={date_max}"
-        )
-
-        # 2a) Apply date filters
-        if date_type == 'datetime':
+        # Date filters
+        app.logger.info(f"Date filter inputs => type={date_type}, min={date_min}, max={date_max}")
+        if date_type == "datetime":
             if date_min is not None:
                 stmt = stmt.where(Frame.datetime_obs >= date_min)
-                app.logger.info(f"Applying Frame.datetime_obs >= {date_min}")
             if date_max is not None:
                 stmt = stmt.where(Frame.datetime_obs <= date_max)
-                app.logger.info(f"Applying Frame.datetime_obs <= {date_max}")
-        elif date_type == 'JD':
+        elif date_type == "JD":
             if date_min is not None:
                 jdmin = date_min - 2400000
                 stmt = stmt.where(Frame.JD >= jdmin)
-                app.logger.info(f"Applying Frame.JD >= {jdmin} (from {date_min})")
             if date_max is not None:
                 jdmax = date_max - 2400000
                 stmt = stmt.where(Frame.JD <= jdmax)
-                app.logger.info(f"Applying Frame.JD <= {jdmax} (from {date_max})")
-        else:
-            app.logger.warning(f"Unknown date_type: {date_type}")
 
-        # 2b) Limit for testing / pagination
-        # stmt = stmt.limit(100)
+        # Log SQL for debugging
+        compiled = stmt.compile(dialect=mysql.dialect(), compile_kwargs={"literal_binds": True})
+        app.logger.info(f"SQL Query:\n{compiled}")
 
-        # 2c) Log the generated SQL
-        compiled_sql = stmt.compile(
-            dialect=mysql.dialect(),
-            compile_kwargs={"literal_binds": True}
-        )
-        app.logger.info(f"SQL Query:\n{compiled_sql}")
-
-        # 2d) Execute and fetch rows: each row is (Frame, sky_bg)
         rows = session.execute(stmt).all()
-        
-
     finally:
         session.close()
 
-    app.logger.info(f"Found {len(rows)} candidate rows before on‑CCD filtering.")
+    app.logger.info(f"Found {len(rows)} rows before on-CCD filtering.")
 
-    # 3) Final on‑CCD check and build result list
+    # Final on-CCD check + build result dicts
     matched = []
     for fr, sky_bg, moondist, sunelev in rows:
         w = fr.astrometry.wcs_transform
-        if w is None: continue
+        if w is None:
+            continue
         if check_coordinate_on_ccd(ra_deg, dec_deg, w, margin=0):
             matched.append({
-                'IHUID':      fr.IHUID,
-                'FNUM':       fr.FNUM,
-                'OBJECT':     fr.OBJECT,
-                'datetime_obs': fr.datetime_obs.isoformat() if fr.datetime_obs else None,
-                'EXPTIME':    fr.EXPTIME,
-                'relpath':    fr.relpath,
-                'sky_bg':     sky_bg,
-                'moondist':   moondist,
-                'sunelev':    sunelev,
+                "IHUID":        fr.IHUID,
+                "FNUM":         fr.FNUM,
+                "OBJECT":       fr.OBJECT,
+                "datetime_obs": fr.datetime_obs.isoformat() if fr.datetime_obs else None,
+                "EXPTIME":      fr.EXPTIME,
+                "relpath":      fr.relpath,
+                "sky_bg":       sky_bg,
+                "moondist":     moondist,
+                "sunelev":      sunelev,
             })
+    app.logger.info(f"Out of those, {len(matched)} frames are actually on the CCD.")
     return matched
 
 
-##################################################
-#   Flask route: /lightcurves with date filters  #
-##################################################
 
+
+
+# -----------------------------------------------------------------------------
+# HTML search interface
+# -----------------------------------------------------------------------------
 @app.route('/data', methods=['GET', 'POST'])
 def lightcurves():
     if request.method == 'POST':
-        # 1) Read RA/DEC strings from the form
-        ra_string = request.form.get('ra', '').strip()
-        dec_string = request.form.get('dec', '').strip()
-
-        # 2) Convert RA/DEC to floats
+        # Read & validate form inputs
+        ra_str = request.form.get('ra', '').strip()
+        dec_str = request.form.get('dec', '').strip()
         try:
-            ra_degrees = float(ra_string)
-            dec_degrees = float(dec_string)
-        except (TypeError, ValueError):
-            # Invalid input: re‑render with an error message
+            ra = float(ra_str)
+            dec = float(dec_str)
+        except ValueError:
             return render_template(
                 'lightcurves.html',
                 frames=[],
-                error="Please provide valid numeric Right Ascension and Declination in degrees.",
-                ra=ra_string,
-                dec=dec_string,
+                error="Please provide valid numeric RA and DEC.",
+                ra=ra_str, dec=dec_str,
                 date_type=request.form.get('date_type', 'datetime'),
                 date_min_input=request.form.get('date_min', ''),
                 date_max_input=request.form.get('date_max', '')
             )
 
-        # 3) Read date filters from the form
-        date_type_string      = request.form.get('date_type', 'datetime').strip()
-        date_minimum_input    = request.form.get('date_min', '').strip()
-        date_maximum_input    = request.form.get('date_max', '').strip()
+        # Parse dates
+        dt_type = request.form.get('date_type', 'datetime').strip()
+        dmin_in = request.form.get('date_min', '').strip()
+        dmax_in = request.form.get('date_max', '').strip()
+        dmin = dmax = None
+        if dt_type == 'datetime':
+            try:
+                if dmin_in:
+                    dmin = datetime.strptime(dmin_in, '%Y-%m-%d')
+                if dmax_in:
+                    dmax = datetime.strptime(dmax_in, '%Y-%m-%d')
+            except ValueError:
+                pass
+        else:  # JD
+            try:
+                if dmin_in:
+                    dmin = float(dmin_in)
+                if dmax_in:
+                    dmax = float(dmax_in)
+            except ValueError:
+                pass
 
-        # 4) Parse date_minimum and date_maximum into appropriate types
-        date_minimum = None
-        date_maximum = None
-        if date_type_string == 'datetime':
-            if date_minimum_input:
-                try:
-                    date_minimum = datetime.strptime(date_minimum_input, '%Y-%m-%d')
-                except ValueError:
-                    pass
-            if date_maximum_input:
-                try:
-                    date_maximum = datetime.strptime(date_maximum_input, '%Y-%m-%d')
-                except ValueError:
-                    pass
-        elif date_type_string == 'JD':
-            if date_minimum_input:
-                try:
-                    date_minimum = float(date_minimum_input)
-                except ValueError:
-                    pass
-            if date_maximum_input:
-                try:
-                    date_maximum = float(date_maximum_input)
-                except ValueError:
-                    pass
-
-        # 5) Determine requested page number (default to 1) and page size
-        page_number = 1
+        # Pagination setup
+        page = 1
         try:
-            page_number = int(request.form.get('page', '1'))
+            page = int(request.form.get('page', '1'))
         except ValueError:
-            page_number = 1
+            pass
         page_size = 50
 
-        # 6) Run the full query (no SQL LIMIT)
+        # Run query
         all_frames = query_frames_by_coordinate(
-            ra_degrees,
-            dec_degrees,
-            date_min=date_minimum,
-            date_max=date_maximum,
-            date_type=date_type_string,
+            ra, dec,
+            date_min=dmin, date_max=dmax, date_type=dt_type
         )
+        total = len(all_frames)
+        total_pages = max(1, math.ceil(total / page_size))
+        page = max(1, min(page, total_pages))
+        start = (page - 1) * page_size
+        frames_page = all_frames[start:start + page_size]
 
-        # 7) Compute total count and total pages
-        total_frame_count = len(all_frames)
-        total_pages = max(1, math.ceil(total_frame_count / page_size))
-
-        # 8) Clamp page_number to valid range
-        if page_number < 1:
-            page_number = 1
-        elif page_number > total_pages:
-            page_number = total_pages
-
-        # 9) Slice out only the frames for the current page
-        start_index = (page_number - 1) * page_size
-        end_index = start_index + page_size
-        frames_for_display = all_frames[start_index:end_index]
-
-        # 10) If no frames at all, show a “no coverage” message
-        if total_frame_count == 0:
+        if total == 0:
             return render_template(
                 'lightcurves.html',
-                frames=[],
-                total_count=0,
-                message="No coverage found for that coordinate and date range.",
-                ra=ra_string,
-                dec=dec_string,
-                date_type=date_type_string,
-                date_min_input=date_minimum_input,
-                date_max_input=date_maximum_input,
-                page=1,
-                total_pages=1
+                frames=[], total_count=0,
+                message="No coverage found.",
+                ra=ra_str, dec=dec_str,
+                date_type=dt_type,
+                date_min_input=dmin_in, date_max_input=dmax_in,
+                page=1, total_pages=1
             )
 
-        # 11) Render the template with both the true total and the current page’s frames
         return render_template(
             'lightcurves.html',
-            frames=frames_for_display,
-            total_count=total_frame_count,
-            page=page_number,
+            frames=frames_page,
+            total_count=total,
+            page=page,
             total_pages=total_pages,
-            ra=ra_string,
-            dec=dec_string,
-            date_type=date_type_string,
-            date_min_input=date_minimum_input,
-            date_max_input=date_maximum_input
+            ra=ra_str, dec=dec_str,
+            date_type=dt_type,
+            date_min_input=dmin_in,
+            date_max_input=dmax_in
         )
 
-    # If it’s a GET request, just render the empty search form
+    # GET: just show empty form
     return render_template('lightcurves.html', frames=None)
 
+# -----------------------------------------------------------------------------
+# Serve FITS files for JS9 viewer
+# -----------------------------------------------------------------------------
+# -----------------------------------------------------------------------------
+# Serve RED FITS files for JS9 viewer, with exhaustive logging & both .fz/.fits
+# -----------------------------------------------------------------------------
+@app.route('/fits/<int:ihuid>/<int:fnum>')
+def serve_fits(ihuid, fnum):
+    app.logger.info(f"[serve_fits] called with ihuid={ihuid}, fnum={fnum}")
+
+    # 1) Fetch the Frame record
+    session = SessionLocal()
+    frame = session.query(Frame).filter_by(IHUID=ihuid, FNUM=fnum).one_or_none()
+    session.close()
+    if frame is None:
+        app.logger.error(f"[serve_fits] No Frame record for {ihuid}/{fnum}")
+        return "Frame not found", 404
+
+    # 2) Log DB‐side filename info
+    app.logger.info(
+        f"[serve_fits] frame.date_dir={frame.date_dir}, "
+        f"frame.frame_name={frame.frame_name!r}, "
+        f"frame.compression={frame.compression!r}"
+    )
+
+    # 3) Derive the “base” (strip .fits or .fz if present)
+    base = (frame.frame_name or "").strip()
+    if base.lower().endswith('.fits'):
+        base = base[:-5]
+    if base.lower().endswith('.fz'):
+        base = base[:-3]
+    app.logger.info(f"[serve_fits] base name stripped to {base!r}")
+
+    # 4) Build the directory under FITS_ROOT
+    date_dir = (frame.date_dir or "").strip()
+    ihu_dir  = f"ihu{frame.IHUID:02d}"
+    dirpath  = os.path.join(FITS_ROOT, date_dir, ihu_dir)
+    app.logger.info(f"[serve_fits] looking in directory: {dirpath}")
+
+    # 5) Try the two possible filenames ***directly*** in that folder
+    candidates = [f"{base}-red.fits.fz", f"{base}-red.fits"]
+    app.logger.warning("CANDIDATES = %s",
+                       [os.path.join(dirpath, c) for c in candidates])
+    for fname in candidates:
+        fullpath = os.path.join(dirpath, fname)
+        app.logger.info(f"[serve_fits] checking existence of {fullpath}")
+        if os.path.isfile(fullpath):
+            app.logger.info(f"[serve_fits] found file: {fullpath}")
+            # 6a) If compressed, decompress in memory
+            if fullpath.lower().endswith('.fz'):
+                try:
+                    with afits.open(fullpath, ignore_missing_end=True, memmap=False) as hdul:
+                        app.logger.info(f"[serve_fits] opened HDUList, count={len(hdul)}")
+                        bio = BytesIO()
+                        hdul.writeto(bio, overwrite=True)
+                        bio.seek(0)
+                        app.logger.info(f"[serve_fits] decompressed to {bio.getbuffer().nbytes} bytes")
+                        return Response(
+                            bio.getvalue(),
+                            mimetype='application/fits',
+                            headers={
+                                'Content-Disposition': f'inline; filename="{fname[:-3]}"'
+                            }
+                        )
+                except Exception as e:
+                    app.logger.exception(f"[serve_fits] error decompressing {fullpath}")
+                    return f"Error reading FITS: {e}", 500
+            # 6b) Otherwise just stream the file
+            return send_file(fullpath, mimetype='application/fits')
+
+    # 7) Not found
+    app.logger.error(
+        f"[serve_fits] none of the RED files exist under {dirpath}: {candidates}"
+    )
+    return "FITS file not found", 404
 
 
-from flask import Response, jsonify, request
-from datetime import datetime
-from io import StringIO, BytesIO
-import csv
-from astropy.table import Table
 
+# -----------------------------------------------------------------------------
+# Programmatic API endpoint (JSON / CSV / VOTable)
+# -----------------------------------------------------------------------------
 @app.route('/api/data', methods=['POST'])
 def data_api():
-    """
-    POST /api/data
-    Accepts JSON payload with ra, dec, date_type, date_min, date_max.
-    Optional query-string parameter ?format=csv or ?format=votable selects output format.
-    """
-    # 0) Determine requested output format
     fmt = request.args.get('format', 'json').lower()
-
-    # 1) Validate that the body is JSON
     if not request.is_json:
         return jsonify({"error": "Request must be JSON"}), 400
     data = request.get_json()
 
-    # 2) Parse and validate RA/DEC
+    # Validate RA/DEC
     try:
-        ra_deg  = float(data.get('ra', '').strip())
-        dec_deg = float(data.get('dec', '').strip())
+        ra = float(data.get('ra', '').strip())
+        dec = float(data.get('dec', '').strip())
     except Exception:
-        return jsonify({"error": "Invalid RA or DEC. They must be numeric."}), 400
+        return jsonify({"error": "Invalid RA or DEC"}), 400
 
-    # 3) Parse and validate date filters
-    date_type      = data.get('date_type', 'datetime').strip()
-    date_min_input = data.get('date_min', '').strip()
-    date_max_input = data.get('date_max', '').strip()
-    date_min = date_max = None
-
-    if date_type == 'datetime':
-        if date_min_input:
-            try:
-                date_min = datetime.strptime(date_min_input, '%Y-%m-%d')
-            except ValueError:
-                return jsonify({"error": "Invalid date_min format. Use YYYY-MM-DD."}), 400
-        if date_max_input:
-            try:
-                date_max = datetime.strptime(date_max_input, '%Y-%m-%d')
-            except ValueError:
-                return jsonify({"error": "Invalid date_max format. Use YYYY-MM-DD."}), 400
-
-    elif date_type == 'JD':
+    # Validate dates
+    dt_type = data.get('date_type', 'datetime').strip()
+    dmin_in = data.get('date_min', '').strip()
+    dmax_in = data.get('date_max', '').strip()
+    dmin = dmax = None
+    if dt_type == 'datetime':
         try:
-            if date_min_input:
-                date_min = float(date_min_input)
-            if date_max_input:
-                date_max = float(date_max_input)
+            if dmin_in:
+                dmin = datetime.strptime(dmin_in, '%Y-%m-%d')
+            if dmax_in:
+                dmax = datetime.strptime(dmax_in, '%Y-%m-%d')
         except ValueError:
-            return jsonify({"error": "Invalid JD date_min/date_max. Must be numeric."}), 400
-
+            return jsonify({"error": "Invalid date format"}), 400
     else:
-        return jsonify({"error": "Unsupported date_type"}), 400
+        try:
+            if dmin_in:
+                dmin = float(dmin_in)
+            if dmax_in:
+                dmax = float(dmax_in)
+        except ValueError:
+            return jsonify({"error": "Invalid JD dates"}), 400
 
-    # 4) Query the database
-    frames_found = query_frames_by_coordinate(
-        ra_deg, dec_deg,
-        date_min=date_min,
-        date_max=date_max,
-        date_type=date_type
+    frames = query_frames_by_coordinate(
+        ra, dec,
+        date_min=dmin, date_max=dmax, date_type=dt_type
     )
 
-    # 5) Normalize and enrich results
+    # Build normalized result dicts
     results = []
-    for f in frames_found:
-        dt = f.get('datetime_obs')
-        if dt and not dt.endswith('Z'):
-            dt = dt + 'Z'
+    for f in frames:
+        dt = f.get("datetime_obs")
+        if dt and not dt.endswith("Z"):
+            dt += "Z"
         results.append({
             "object":             f.get("OBJECT", "").lower(),
             "ihuid":              f.get("IHUID"),
@@ -393,47 +402,41 @@ def data_api():
             "datetime_obs":       dt,
             "exptime":            f.get("EXPTIME"),
             "sky_background_adu": f.get("sky_bg"),
-            "moon_distance":     f.get("moondist"),
-            "sun_elevation":     f.get("sunelev"),
-            "download_url":       f"https://hatpi.org/data/{f.get('relpath')}"
+            "moon_distance":      f.get("moondist"),
+            "sun_elevation":      f.get("sunelev"),
+            "download_url":       f"https://hatpi.org/data/{f.get('relpath')}",
         })
 
-    # 6) Branch on requested format
-    if fmt == 'csv':
-        # Build CSV in memory
+    # CSV output
+    if fmt == "csv":
         output = StringIO()
         writer = csv.writer(output)
         writer.writerow([
-            "object", "ihuid", "fnum", "datetime_obs",
-            "exptime", "sky_background_adu", "moon_distance", "sun_elevation",
+            "object","ihuid","fnum","datetime_obs",
+            "exptime","sky_background_adu",
+            "moon_distance","sun_elevation",
             "download_url"
         ])
         for row in results:
             writer.writerow([
                 row["object"], row["ihuid"], row["fnum"],
                 row["datetime_obs"], row["exptime"],
-                row["sky_background_adu"], row["moon_distance"], row["sun_elevation"],
+                row["sky_background_adu"],
+                row["moon_distance"], row["sun_elevation"],
                 row["download_url"]
             ])
-        return Response(output.getvalue(), mimetype='text/csv')
+        return Response(output.getvalue(), mimetype="text/csv")
 
-    elif fmt == 'votable':
-        # Build VOTable using Astropy
+    # VOTable output
+    if fmt == "votable":
         table = Table(rows=results, names=list(results[0].keys()) if results else [])
-        buffer = BytesIO()
-        table.write(buffer, format='votable')
-        return Response(buffer.getvalue(), mimetype='application/x-votable+xml')
+        buf = BytesIO()
+        table.write(buf, format="votable")
+        return Response(buf.getvalue(), mimetype="application/x-votable+xml")
 
-    else:
-        # Default: JSON envelope
-        return jsonify({
-            "total_frames": len(results),
-            "frames":       results
-        }), 200
+    # Default JSON
+    return jsonify({"total_frames": len(results), "frames": results}), 200
 
-
-
-
-
-if __name__ == '__main__':
+# -----------------------------------------------------------------------------
+if __name__ == "__main__":
     app.run(debug=True, port=5002)
