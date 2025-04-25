@@ -143,7 +143,7 @@ main {
     background: #ffffff;
     border-radius: 16px;
     box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15);
-    max-width: 1000px;
+    max-width: 1200px;
     margin: 0 auto 60px;
     padding: 40px;
 }
@@ -431,6 +431,30 @@ main {
 .frames-table tbody tr:hover {
     background-color: #e9e9e9;
 }
+
+/* view button in frames table */
+.frames-table .view-btn{
+    /* make it smaller */
+    padding: 6px 14px;        /* top/bottom, left/right */
+    font-size: 0.8em;
+
+    /* match the search-info-box rounding */
+    border-radius: 8px;
+
+    /* keep the same colours/hover effect as visit-button */
+    background-color: #e6f9e6;
+    border: 1px solid #ccc;
+    font-weight: 500;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.05);
+    cursor: pointer;
+    transition: background-color .2s ease, transform .2s ease;
+}
+
+.frames-table .view-btn:hover{
+    background-color: #d6f3d6;
+    transform: translateY(-1px);
+}
+
 
 
 /* CLI query box styling */

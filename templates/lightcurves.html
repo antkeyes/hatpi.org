@@ -8,6 +8,8 @@
   <link rel="stylesheet" href="/static/lightcurves.css">
   <link rel="icon" href="/static/images/favicon.png" type="image/x-icon">
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="{{ url_for('static', filename='js9/js9-allinone.css') }}">
+  <script src="{{ url_for('static', filename='js9/js9-allinone.js') }}"></script>
 </head>
 
 <body class="lightcurves-page">
@@ -146,8 +148,9 @@
                   <th>Observation Time (UTC)</th>
                   <th>EXPTIME</th>
                   <th>Sky Background (ADU)</th>
-                  <th>Moon Distance</th>
-                  <th>Sun Elevation</th>
+                  <th>Moon Distance (deg)</th>
+                  <th>Sun Elevation (deg)</th>
+                  <th>DS9</th>
                 </tr>
               </thead>
               <tbody>
@@ -162,7 +165,12 @@
                   <td>{{ f.sky_bg|default('N/A') }}</td>
                   <td>{{ f.moondist|default('N/A') }}</td>
                   <td>{{ f.sunelev|default('N/A') }}</td>
-
+                  <td>
+                    <button type="button" class="view-btn visit-button" data-ihuid="{{ f.IHUID }}"
+                      data-fnum="{{ f.FNUM }}">
+                      View
+                    </button>
+                  </td>
                 </tr>
                 {% endfor %}
               </tbody>
@@ -227,25 +235,279 @@
     </div>
 
 
-
-
-
-
-
   </main>
 
+
+  <!-- Copy-to-clipboard script -->
   <script src="/static/lightcurves.js"></script>
   <script>
-    document.querySelectorAll('.copy-button').forEach(button => {
-      const preId = button.getAttribute('data-target');
-      const pre = document.getElementById(preId);
-      button.addEventListener('click', () => {
-        navigator.clipboard.writeText(pre.textContent.trim());
-        button.textContent = 'Copied! ✅';
-        setTimeout(() => button.textContent = `Copy ${button.dataset.target.split('-')[1].toUpperCase()} 📋`, 1500);
+    document.addEventListener("DOMContentLoaded", () => {
+      document.querySelectorAll('.copy-button').forEach(button => {
+        const pre = document.getElementById(button.dataset.target);
+        const originalText = button.textContent;
+        button.addEventListener('click', () => {
+          navigator.clipboard.writeText(pre.textContent.trim());
+          button.textContent = 'Copied! ✅';
+          setTimeout(() => button.textContent = originalText, 1500);
+        });
       });
     });
   </script>
+
+
+  <!-- ── JS9 backdrop & modal ─────────────────────────────────────────── -->
+  <div id="fits-backdrop" style="display:none;position:fixed;inset:0;
+            background:rgba(0,0,0,.55);z-index:999;"></div>
+
+  <style>
+    /* ─────────────── JS9 modal + layout overrides ─────────────── */
+
+    /* fixed, centred modal shell */
+    #fits-modal {
+      position: fixed;
+      top: 2vh;
+      left: 50%;
+      transform: translateX(-50%);
+      background: #fff;
+      padding: 12px;
+      border-radius: 12px;
+      box-shadow: 0 8px 24px rgba(0, 0, 0, .4);
+
+      /* fill most of the viewport but never exceed it */
+      width: 96vw;
+      max-width: 96vw;
+      height: 96vh;
+      max-height: 96vh;
+      overflow: auto;
+
+      z-index: 1000;
+      display: none;
+      padding-bottom: 50px;
+      /* shown when you click “View” */
+    }
+
+    /* flex container holding the two columns */
+    #js9-layout {
+      display: flex;
+      gap: 12px;
+      /* breathing room between columns */
+      width: 100%;
+      /* inherit full modal width        */
+      max-width: 100%;
+      box-sizing: border-box;
+      height: 100%;
+      padding-bottom: 8px;
+    }
+
+    /* left column = JS9 core UI stack */
+    #js9-left {
+      flex: 1 1 0;
+      /* start at 0, then take remaining space */
+      min-width: 0;
+      /* allow it to shrink on very small screens */
+      display: flex;
+      flex-direction: column;
+      height: 100%;
+    }
+
+    /* right column = info + magnifier */
+    #js9-right {
+      flex: 0 0 280px;
+      /* fixed 280-px width */
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      min-height: 0;
+    }
+
+    /* bars span full width */
+    #js9-viewerMenubar,
+    #js9-viewerToolbar,
+    #js9-viewerStatusbar {
+      width: 100% !important;
+      min-width: 0;
+      box-sizing: border-box;
+
+      flex: 0 0 auto;
+      overflow-x: hidden !important;
+    }
+
+    /* give the status-bar enough room and stop it scrolling */
+    #js9-viewerStatusbar {
+      height: 28px !important;
+      /* 24-28 px is usually plenty */
+      overflow: visible !important;
+      flex: 0 0 28px;
+      /* reserve that space in the column */
+      white-space: nowrap;
+      /* stop long text from wrapping      */
+    }
+
+
+    /* JS9 canvas dominates height */
+    #js9-viewer {
+      flex: 1 1 0;
+      width: 100% !important;
+      /* adjust if you change bar heights */
+      max-height: 100%;
+    }
+
+    /* plugins in the right column */
+    #js9-viewerInfo,
+    #js9-viewerMagnifier {
+      flex: 1 1 0;
+      overflow: auto;
+    }
+
+    /* close button */
+    #js9-close {
+      position: absolute;
+      bottom: 18px;
+      /* tweak to taste */
+      left: 50%;
+      transform: translateX(-50%);
+      z-index: 1010;
+      /* above the canvas */
+      padding: 8px 18px;
+      font-size: 0.95rem;
+      border-radius: 8px !important;
+    }
+
+
+    /* let the toolbar take its natural height (≈32 px) */
+    /* force toolbar to bigger height, overriding JS-9’s inline style */
+    #js9-viewerToolbar {
+      height: 55px !important;
+      /* 32px works too; 36px leaves a small margin */
+      overflow: visible !important;
+      flex: 0 0 36px;
+      /* make the flex column reserve the same space */
+    }
+
+    /* ── status-bar: override JS9’s inline 17-px clamp ───────────── */
+    #viewerStatusbarContainer,
+    #js9-viewerStatusbarContainer {
+      /* JS9 uses one of these two ids */
+      height: 28px !important;
+      /* 24–28 px is plenty */
+      overflow: visible !important;
+      flex: 0 0 28px;
+      /* left column now reserves 28 px */
+    }
+
+    /* be sure the inner bar also shows everything (belt-and-braces) */
+    #viewerStatusbarContainer .JS9Statusbar {
+      height: 100% !important;
+      overflow: visible !important;
+      white-space: nowrap;
+      /* prevent line-wrap ⇒ no h-scroll */
+    }
+  </style>
+
+  <div id="fits-modal">
+    <div id="js9-layout"> <!-- flex container -->
+      <div id="js9-left"> <!-- left column -->
+        <div id="js9-viewerMenubar" class="JS9Menubar"></div>
+        <div id="js9-viewerToolbar" class="JS9Toolbar"></div>
+
+        <!--  NO data-width / data-height attributes here -->
+        <div id="js9-viewer" class="JS9"></div>
+
+        <div id="js9-viewerStatusbar" class="JS9Statusbar"></div>
+      </div>
+
+      <div id="js9-right"> <!-- right column -->
+        <div id="js9-viewerInfo" class="JS9Info"></div>
+        <div id="js9-viewerMagnifier" class="JS9Magnifier"></div>
+      </div>
+    </div>
+
+    <button id="js9-close" class="visit-button" type="button">Close</button>
+  </div>
+
+  <script>
+    function syncColorbarWidth() {
+      const viewer = document.getElementById("js9-viewer");
+      if (!viewer) return;
+
+      // how much narrower you want the colour-bar:
+      const OFFSET = 40;                // px   ← adjust here  (or use a %)
+
+      const w = Math.max(50, viewer.clientWidth - OFFSET);   // never below 50 px
+
+      const bar = document.getElementById("js9-viewerColorbarCanvas");
+      if (!bar) return;
+
+      const span = bar.parentElement;   // JS9ColorbarContainer
+      const item = span.parentElement;  // JS9StatusbarItem
+
+      [bar, span, item].forEach(el => {
+        el.style.width = w + "px";
+        el.style.maxWidth = w + "px";
+      });
+      item.style.flex = `0 0 ${w}px`;   // reserve that space in the row
+    }
+
+
+
+    document.addEventListener("DOMContentLoaded", () => {
+      const modal = document.getElementById("fits-modal");
+      const backdrop = document.getElementById("fits-backdrop");
+      const closeBtn = document.getElementById("js9-close");
+      document.addEventListener("keydown", evt => {
+        if (evt.key === "Escape" && modal.style.display === "block") {
+          closeBtn.click();                 // triggers the same handler
+        }
+      });
+
+      /* helper – resize JS9 to fill its div */
+      function fillViewer() {
+        const box = document.getElementById("js9-viewer");
+        JS9.ResizeDisplay("js9-viewer", box.clientWidth, box.clientHeight);
+      }
+
+      /* open viewer on each “View” button */
+      document.querySelectorAll(".view-btn").forEach(btn => {
+        btn.addEventListener("click", () => {
+          const fitsURL = `/fits/${btn.dataset.ihuid}/${btn.dataset.fnum}`;
+
+          backdrop.style.display = "block";
+          modal.style.display = "block";
+
+          JS9.Load(fitsURL, {
+            display: "js9-viewer",
+            onload: () => {
+              fillViewer();
+              JS9.SetZoom("to fit", "js9-viewer");
+              syncColorbarWidth();
+
+              console.log("JS9 loaded & resized OK");
+            }
+          });
+        });
+      });
+
+      /* keep viewer responsive on window resize */
+      window.addEventListener("resize", () => {
+        if (modal.style.display === "block") {
+          fillViewer();
+        }
+        JS9.SetZoom("to fit", "js9-viewer");
+        syncColorbarWidth();
+      });
+
+      /* close viewer */
+      closeBtn.addEventListener("click", () => {
+        JS9.CloseDisplay("js9-viewer");
+        modal.style.display = "none";
+        backdrop.style.display = "none";
+      });
+    });
+  </script>
+
+
+
+
 </body>
 
 </html>
