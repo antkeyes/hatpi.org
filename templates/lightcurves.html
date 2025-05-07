@@ -10,56 +10,96 @@
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="{{ url_for('static', filename='js9/js9-allinone.css') }}">
   <script src="{{ url_for('static', filename='js9/js9-allinone.js') }}"></script>
+  <script src="https://cdn.plot.ly/plotly-2.30.0.min.js"></script>
+
 </head>
 
 <body class="lightcurves-page">
-  <!-- Left Sidebar Navigation -->
+
+
+  <!-- ── Top Navigation Bar ───────────────────────────────────────── -->
+  <header id="top-navbar">
+    <nav class="top-nav-links">
+      <a href="{{ url_for('frames_page') }}"
+        class="top-nav-btn {{ 'active' if active_page=='frames' else 'inactive' }}">
+        Frames
+      </a>
+      <a href="{{ url_for('lightcurves_page') }}"
+        class="top-nav-btn {{ 'active' if active_page=='lightcurves' else 'inactive' }}">
+        Light&nbsp;Curves
+      </a>
+    </nav>
+  </header>
+
+  <!-- ── Left Sidebar Navigation ─────────────────────────────────── -->
   <nav id="lightcurves-navigation">
     <a href="https://hatpi.org" class="nav-home-link">🏡</a>
 
-    <!-- Search Form inside the Sidebar -->
-    <div id="search-form-sidebar">
+    <div id="search-form-sidebar"> <!-- ⬅ preserves your original CSS -->
 
       <h2 class="nav-section-title">
-        <img src="/static/icons/search.svg" alt="Gear Icon" class="nav-icon">
+        <img src="/static/icons/search.svg" alt="Search Icon" class="nav-icon">
         Search
       </h2>
+
+      {% if active_page == 'frames' %}
+      <!-- full form only on Frames view -->
       <form method="POST">
         <label for="ra">
-          <img src="/static/icons/RA.png" alt="Gear Icon" class="small-icon">
-          RA (deg)</label>
+          <img src="/static/icons/RA.png" alt="RA Icon" class="small-icon">
+          RA&nbsp;(deg)
+        </label>
         <input type="text" id="ra" name="ra" placeholder="e.g. 180.07" value="{{ ra|default('') }}" />
 
         <label for="dec">
-          <img src="/static/icons/DEC.png" alt="Gear Icon" class="small-icon">
-          DEC (deg)</label>
+          <img src="/static/icons/DEC.png" alt="DEC Icon" class="small-icon">
+          DEC&nbsp;(deg)
+        </label>
         <input type="text" id="dec" name="dec" placeholder="e.g. -83.553" value="{{ dec|default('') }}" />
 
-        <label for="date_type">Date Type</label>
+        <label for="date_type">Date&nbsp;Type</label>
         <select id="date_type" name="date_type">
-          <option value="datetime" {% if date_type=='datetime' %}selected{% endif %}>datetime</option>
-          <option value="JD" {% if date_type=='JD' %}selected{% endif %}>JD</option>
+          <option value="datetime" {% if date_type=='datetime' %}selected{% endif %}>
+            datetime
+          </option>
+          <option value="JD" {% if date_type=='JD' %}selected{% endif %}>
+            JD
+          </option>
         </select>
-        <small>If "datetime", format is YYYY-MM-DD.<br />If "JD", enter float such as 2459990.5.</small>
+        <small>If “datetime”, use YYYY-MM-DD.<br>
+          If “JD”, enter a float such as 2459990.5.</small>
 
-        <label for="date_min">Date Min</label>
+        <label for="date_min">Date&nbsp;Min</label>
         <input type="text" id="date_min" name="date_min" placeholder="YYYY-MM-DD or 2459990.5"
           value="{{ date_min_input|default('') }}" />
 
-        <label for="date_max">Date Max</label>
+        <label for="date_max">Date&nbsp;Max</label>
         <input type="text" id="date_max" name="date_max" placeholder="YYYY-MM-DD or 2459991.5"
           value="{{ date_max_input|default('') }}" />
 
         <button type="submit" class="visit-button">Search</button>
       </form>
+      {% else %}
+      <!-- Light-Curves view: GAIA-ID search only -->
+      <form method="POST">
+        <label for="gaia_id">
+          <img src="/static/icons/star.png" alt="GAIA Icon" class="small-icon">
+          Gaia DR2 ID
+        </label>
+        <input type="text" id="gaia_id" name="gaia_id" placeholder="e.g.&nbsp;617917189689396864"
+          value="{{ gaia_id|default('') }}" />
 
-    </div>
+        <button type="submit" class="visit-button">Search</button>
+      </form>
+      {% endif %}
 
+    </div> <!-- /#search-form-sidebar -->
   </nav>
+
 
   <!-- Main content area for query results -->
   <main>
-
+    {% if show_upcoming %}
     <section id="upcoming">
       <div class="section-card">
         <!-- <div class="title-container">
@@ -70,16 +110,21 @@
         <div class="content-area">
           <h1 class="section-title">Upcoming Data Releases</h1>
           <p>
-            We’re excited to announce that stitched light curves and high-resolution image stamps will soon be available
+            We’re excited to announce that light curves and high-resolution image stamps will soon be available
             for direct viewing and download. In the meantime, our frame search feature lets you explore HATPI’s
             observations to determine if we’ve captured the astronomical phenomena you’re researching.
           </p>
         </div>
       </div>
     </section>
+    {% endif %}
 
 
     <section id="results">
+
+      {# -----------------------------------------------------------------------
+      0. Global status messages
+      ----------------------------------------------------------------------- #}
       {% if error %}
       <p class="error-text">{{ error }}</p>
       {% endif %}
@@ -88,97 +133,305 @@
       <p class="message-text">{{ message }}</p>
       {% endif %}
 
-      {% if frames is none %}
+      {% if lightcurve_path %}
+      <!-- Light-curve card ------------------------------------------------- -->
+      <div class="section-card">
+        <div class="title-container">
+          <h2 class="section-title">Light Curve</h2>
+        </div>
+        <div class="content-area">
+          <p><strong>Stitched FITS:</strong> {{ lightcurve_path }}</p>
+          <div id="lc-plot" style="width:100%;height:500px;"></div>
+        </div>
+      </div>
+
+      <!-- Inline Plotly build -->
+      <script>
+        const lcTime = {{ lc_time| tojson }};
+        const lcFlux = {{ lc_flux| tojson }};
+
+        Plotly.newPlot('lc-plot', [{
+          x: lcTime,
+          y: lcFlux,                   // this var name is fine – it’s now magnitudes
+          mode: 'markers',
+          marker: { size: 3 }
+        }], {
+          margin: { l: 60, r: 20, t: 30, b: 40 },
+          xaxis: { title: 'Time (BJD / JD)' },
+          yaxis: { title: 'Magnitude (mag)', autorange: 'reversed' }  // inverted axis
+        });
+
+      </script>
+      {% endif %}
+
+
+      {# -----------------------------------------------------------------------
+      1. Show “Awaiting search” card if no search has been run yet.
+      The backend sets frames = None before any query is executed.
+      ----------------------------------------------------------------------- #}
+      {% if active_page == 'frames' %}
+      {% if object_total is not defined and twilight_total is not defined %}
       <div class="section-card">
         <div class="title-container">
           <div class="title-row">
             <h1 class="section-title">⬅️ Awaiting search</h1>
           </div>
         </div>
-        <div class="content-area">
-          <!-- placeholder for before query is submitted -->
-        </div>
+        <div class="content-area"><!-- placeholder --></div>
       </div>
 
-      {% elif frames %}
-      <div class="section-card">
-        <!-- New Title Container Layout for Results -->
+      {# -----------------------------------------------------------------------
+      2. Show results: two independent cards
+      • #object-card – visible by default
+      • #twilight-card – hidden until the radio switch is clicked
+      ----------------------------------------------------------------------- #}
+      {% elif object_total or twilight_total %}
+      {% if twilight_total > 0 %}
+      <div id="frame-switch" class="radio-switch">
+        <!-- Object button -->
+        <label class="container">
+          <input type="radio" name="frameType" value="object" {% if current_view=='object' %}checked{% endif %}>
+          <span class="checkmark"></span>
+          Object Frames
+        </label>
+
+        <!-- Twilight button -->
+        <label class="container">
+          <input type="radio" name="frameType" value="twilight" {% if current_view=='twilight' %}checked{% endif %}>
+          <span class="checkmark"></span>
+          Twilight Frames *
+        </label>
+      </div>
+      {% endif %}
+
+
+
+
+
+
+      {# ===== OBJECT CARD ================================================== #}
+      <div id="object-card" class="section-card" {% if current_view=='twilight' %}style="display:none;" {% endif %}>
+
         <div class="title-container">
-          <!-- First row: Frames Found -->
+
+          {# --- first row: count badge + radio switch ---------------------- #}
           <div class="title-row">
             <div class="search-info-box">
-              Frames Found: {{ total_count }}
+              Object Frames Found: {{ object_total }}
             </div>
           </div>
-          <!-- Second row: Query details -->
+
+          {# --- second row: query details ---------------------------------- #}
           <div class="title-row search-info-row">
             <div class="search-info-box">RA: {{ ra|default('N/A') }}</div>
             <div class="search-info-box">DEC: {{ dec|default('N/A') }}</div>
             <div class="search-info-box">Date Min: {{ date_min_input|default('N/A') }}</div>
             <div class="search-info-box">Date Max: {{ date_max_input|default('N/A') }}</div>
           </div>
-        </div>
+        </div> {# /title-container #}
+
         <div class="content-area">
           <div class="table-wrapper">
+
+            {# --------- pagination form for OBJECT frames -------------------- #}
             <form method="post" class="pagination-form">
-              <!-- preserve all your search inputs as hidden fields -->
+
+              {# preserve original search fields #}
               <input type="hidden" name="ra" value="{{ ra }}">
               <input type="hidden" name="dec" value="{{ dec }}">
               <input type="hidden" name="date_type" value="{{ date_type }}">
               <input type="hidden" name="date_min" value="{{ date_min_input }}">
               <input type="hidden" name="date_max" value="{{ date_max_input }}">
 
-              <!-- pagination controls -->
-              <button type="submit" name="page" value="{{ page - 1 }}" {% if page <=1 %}disabled{% endif %}>
-                ← Prev
-              </button>
-              <span>Page {{ page }} of {{ total_pages }}</span>
-              <button type="submit" name="page" value="{{ page + 1 }}" {% if page>= total_pages %}disabled{% endif %}>
-                Next →
-              </button>
+              {# keep the *other* card’s page number so it isn’t lost #}
+              <input type="hidden" name="page_twl" value="{{ page_twl }}">
+
+              {# remember which card is currently visible #}
+              <input type="hidden" name="view" value="object">
+
+              {# pagination buttons for OBJECT card #}
+              <button type="submit" name="page_obj" value="{{ page_obj - 1 }}" {% if page_obj <=1 %}disabled{% endif
+                %}>← Prev</button>
+
+              <span>Page {{ page_obj }} of {{ total_pages_obj }}</span>
+
+              <button type="submit" name="page_obj" value="{{ page_obj + 1 }}" {% if page_obj>= total_pages_obj
+                %}disabled{% endif %}>Next →</button>
             </form>
 
+            {# --------- OBJECT frames table --------------------------------- #}
             <table class="frames-table">
               <thead>
                 <tr>
                   <th>Object</th>
-                  <th>IHUID</th>
-                  <th>FNUM</th>
-                  <!-- <th>Path</th> -->
+                  <th class="ihu-header">
+                    IHU
+                    <span class="info-icon" tabindex="0" aria-label="Show IHU layout">&#9432;
+                      <span class="tooltip-box">
+                        <img src="{{ url_for('static', filename='images/ihu_layout.png') }}"
+                          alt="Overhead IHU (CCD) layout" class="tooltip-img">
+                        <p class="tooltip-caption">
+                          Overhead layout of the HATPI instrument.
+                          Each square represents an Instrument Holder Unit (IHU)
+                          that houses one CCD
+                        </p>
+                      </span>
+                    </span>
+                  </th>
+                  <th>Frame Number</th>
                   <th>Observation Time (UTC)</th>
-                  <th>EXPTIME</th>
+                  <th>Exposure (seconds)</th>
                   <th>Sky Background (ADU)</th>
                   <th>Moon Distance (deg)</th>
                   <th>Sun Elevation (deg)</th>
-                  <th>DS9</th>
+                  <th>Calibrated</th>
+                  <th>Subtracted</th>
                 </tr>
               </thead>
               <tbody>
-                {% for f in frames %}
+                {% for f in object_frames %}
                 <tr>
                   <td>{{ f.OBJECT }}</td>
                   <td>{{ f.IHUID }}</td>
                   <td>{{ f.FNUM }}</td>
-                  <!-- <td>{{ f.relpath }}</td> -->
                   <td>{{ f.datetime_obs }}</td>
                   <td>{{ f.EXPTIME }}</td>
                   <td>{{ f.sky_bg|default('N/A') }}</td>
                   <td>{{ f.moondist|default('N/A') }}</td>
                   <td>{{ f.sunelev|default('N/A') }}</td>
                   <td>
-                    <button type="button" class="view-btn visit-button" data-ihuid="{{ f.IHUID }}"
-                      data-fnum="{{ f.FNUM }}">
-                      View
-                    </button>
+                    <button type="button" class="view-btn visit-button" data-kind="red" data-ihuid="{{ f.IHUID }}"
+                      data-fnum="{{ f.FNUM }}">View</button>
+                  </td>
+                  <td>
+                    <button type="button" class="view-btn visit-button" data-kind="sub" data-ihuid="{{ f.IHUID }}"
+                      data-fnum="{{ f.FNUM }}">View</button>
                   </td>
                 </tr>
                 {% endfor %}
               </tbody>
             </table>
-          </div>
-        </div>
-      </div>
 
+          </div> {# /table-wrapper #}
+        </div> {# /content-area #}
+      </div> {# /object-card #}
+
+      {# ===== TWILIGHT CARD =============================================== #}
+      {% if twilight_total > 0 %}
+      <div id="twilight-card" class="section-card" {% if current_view=='object' %}style="display:none;" {% endif %}>
+
+        <div class="title-container">
+
+          {# --- header: count only ----------------------------------------- #}
+          <div class="title-row">
+            <div class="search-info-box">
+              Twilight Frames Found: {{ twilight_total }}
+            </div>
+            <span class="twilight-note">
+              <p>* Please note: Light curves will not be produced for twilight frames</p>
+            </span>
+          </div>
+
+
+          {# --- query details row (same as object) ------------------------- #}
+          <div class="title-row search-info-row">
+            <div class="search-info-box">RA: {{ ra|default('N/A') }}</div>
+            <div class="search-info-box">DEC: {{ dec|default('N/A') }}</div>
+            <div class="search-info-box">Date Min: {{ date_min_input|default('N/A') }}</div>
+            <div class="search-info-box">Date Max: {{ date_max_input|default('N/A') }}</div>
+          </div>
+        </div> {# /title-container #}
+
+        <div class="content-area">
+          <div class="table-wrapper">
+
+            {# --------- pagination form for TWILIGHT frames ----------------- #}
+            <form method="post" class="pagination-form">
+
+              {# preserve original search fields #}
+              <input type="hidden" name="ra" value="{{ ra }}">
+              <input type="hidden" name="dec" value="{{ dec }}">
+              <input type="hidden" name="date_type" value="{{ date_type }}">
+              <input type="hidden" name="date_min" value="{{ date_min_input }}">
+              <input type="hidden" name="date_max" value="{{ date_max_input }}">
+
+              {# keep the *other* card’s page number so it isn’t lost #}
+              <input type="hidden" name="page_obj" value="{{ page_obj }}">
+
+              {# remember which card is currently visible #}
+              <input type="hidden" name="view" value="twilight">
+
+              {# pagination buttons for TWILIGHT card #}
+              <button type="submit" name="page_twl" value="{{ page_twl - 1 }}" {% if page_twl <=1 %}disabled{% endif
+                %}>← Prev</button>
+
+              <span>Page {{ page_twl }} of {{ total_pages_twl }}</span>
+
+              <button type="submit" name="page_twl" value="{{ page_twl + 1 }}" {% if page_twl>= total_pages_twl
+                %}disabled{% endif %}>Next →</button>
+            </form>
+
+            {# --------- TWILIGHT frames table ------------------------------ #}
+            <table class="frames-table">
+              <thead>
+                <tr>
+                  <th>Object</th>
+                  <th class="ihu-header">
+                    IHU
+                    <span class="info-icon" tabindex="0" aria-label="Show IHU layout">&#9432;
+                      <span class="tooltip-box">
+                        <img src="{{ url_for('static', filename='images/ihu_layout.png') }}"
+                          alt="Overhead IHU (CCD) layout" class="tooltip-img">
+                        <p class="tooltip-caption">
+                          Overhead layout of the HATPI instrument.
+                          Each square represents an Instrument Holder Unit (IHU)
+                          that houses one CCD
+                        </p>
+                      </span>
+                    </span>
+                  </th>
+                  <th>Frame Number</th>
+                  <th>Observation Time (UTC)</th>
+                  <th>Exposure (seconds)</th>
+                  <th>Sky Background (ADU)</th>
+                  <th>Moon Distance (deg)</th>
+                  <th>Sun Elevation (deg)</th>
+                  <th>Calibrated</th>
+                  <th>Subtracted</th>
+                </tr>
+              </thead>
+              <tbody>
+                {% for f in twilight_frames %}
+                <tr>
+                  <td>{{ f.OBJECT }}</td>
+                  <td>{{ f.IHUID }}</td>
+                  <td>{{ f.FNUM }}</td>
+                  <td>{{ f.datetime_obs }}</td>
+                  <td>{{ f.EXPTIME }}</td>
+                  <td>{{ f.sky_bg|default('N/A') }}</td>
+                  <td>{{ f.moondist|default('N/A') }}</td>
+                  <td>{{ f.sunelev|default('N/A') }}</td>
+                  <td>
+                    <button type="button" class="view-btn visit-button" data-kind="red" data-ihuid="{{ f.IHUID }}"
+                      data-fnum="{{ f.FNUM }}">View</button>
+                  </td>
+                  <td>
+                    <button type="button" class="view-btn visit-button" data-kind="sub" data-ihuid="{{ f.IHUID }}"
+                      data-fnum="{{ f.FNUM }}">View</button>
+                  </td>
+                </tr>
+                {% endfor %}
+              </tbody>
+            </table>
+
+          </div> {# /table-wrapper #}
+        </div> {# /content-area #}
+      </div> {# /twilight-card #}
+      {% endif %}
+
+      {# -----------------------------------------------------------------------
+      3. No frames found in either list
+      ----------------------------------------------------------------------- #}
       {% else %}
       <div class="section-card">
         <div class="title-container">
@@ -191,9 +444,13 @@
         </div>
       </div>
       {% endif %}
+      {% endif %}
+
     </section>
 
+
     <!-- CLI Query Card -->
+    {% if active_page == 'frames' %}
     <div class="cli-section">
       <h1 class="section-title">Query the API from Your Terminal</h1>
       <div class="cli-query-container">
@@ -233,6 +490,7 @@
 
       </div>
     </div>
+    {% endif %}
 
 
   </main>
@@ -240,6 +498,37 @@
 
   <!-- Copy-to-clipboard script -->
   <script src="/static/lightcurves.js"></script>
+
+  <script>
+    document.addEventListener("DOMContentLoaded", () => {
+      const switchBox = document.getElementById("frame-switch");
+      if (!switchBox) return;
+
+      const objCard = document.getElementById("object-card");
+      const twlCard = document.getElementById("twilight-card");
+
+      // helper: mark every radio so the visible dot matches the view
+      function setView(view) {
+        document.querySelectorAll('input[name="frameType"]').forEach(r => {
+          r.checked = (r.value === view);
+        });
+        objCard.style.display = (view === "object") ? "" : "none";
+        twlCard.style.display = (view === "twilight") ? "" : "none";
+      }
+
+      /* ---------- initial sync (fixes missing dot on first load) ---------- */
+      setView("{{ current_view }}");    // Jinja injects "object" or "twilight"
+      /* -------------------------------------------------------------------- */
+
+      // click-handler: switch cards + keep all radios in sync
+      document.querySelectorAll('input[name="frameType"]').forEach(radio => {
+        radio.addEventListener("change", () => setView(radio.value));
+      });
+    });
+
+  </script>
+
+
   <script>
     document.addEventListener("DOMContentLoaded", () => {
       document.querySelectorAll('.copy-button').forEach(button => {
@@ -469,7 +758,11 @@
       /* open viewer on each “View” button */
       document.querySelectorAll(".view-btn").forEach(btn => {
         btn.addEventListener("click", () => {
-          const fitsURL = `/fits/${btn.dataset.ihuid}/${btn.dataset.fnum}`;
+          const kind = btn.dataset.kind || "red";
+
+          const ihuid = btn.dataset.ihuid;
+          const fnum = btn.dataset.fnum;
+          const fitsURL = `/fits/${kind}/${ihuid}/${fnum}`;
 
           backdrop.style.display = "block";
           modal.style.display = "block";
@@ -477,15 +770,19 @@
           JS9.Load(fitsURL, {
             display: "js9-viewer",
             onload: () => {
+              // JS9.SetScale("zscale", "js9-viewer");
               fillViewer();
               JS9.SetZoom("to fit", "js9-viewer");
               syncColorbarWidth();
 
+              JS9.SetScale("zscale", { display: "js9-viewer" });
+              JS9.SetWCSUnits("degrees", { display: "js9-viewer" });
               console.log("JS9 loaded & resized OK");
             }
           });
         });
       });
+
 
       /* keep viewer responsive on window resize */
       window.addEventListener("resize", () => {

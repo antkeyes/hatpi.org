@@ -20,8 +20,88 @@ body.lightcurves-page {
     font-family: 'Inter', sans-serif;
 }
 
+#top-navbar {
+    position: fixed;
+    justify-content: space-between;
+    top: 0;
+    /* sit immediately to the right of the 18 % sidebar */
+    left: 18%;
+    width: calc(100% - 18%);
+    height: 100px;
+    /* requested height */
+    background: #FFFFFF;
+    display: flex;
+    align-items: center;
+    padding: 0 40px;
+    box-shadow: 0 4px 8px -4px rgba(0, 0, 0, .08);
+    z-index: 20;
+    /* above #lightcurves-navigation (z-index 10) */
+    box-sizing: border-box;
+    /* keeps width calc accurate */
+    border-bottom: 1px solid #d8d8d8;
+    /* horizontal line */
+    /* border-left: 1px solid #d8d8d8; */
+}
 
+/* group that holds the buttons */
+.top-nav-links {
+    display: flex;
+    gap: 24px;
+    margin-left: 55px;
+    /* space between buttons */
+}
 
+/* ─── top-bar buttons ─────────────────────────────────────────────── */
+.top-nav-btn {
+    padding: 12px 6px;
+    /* comfortable click target        */
+    font-size: 20px;
+    /* larger text                     */
+    font-weight: 600;
+    background: transparent;
+    border: none;
+    text-decoration: none;
+    cursor: pointer;
+    transition: color 0.2s;
+}
+
+/* active = dark text, no hover, not clickable */
+.top-nav-btn.active {
+    color: #1a1a1a;
+    pointer-events: none;
+}
+
+/* inactive = light grey + underline animation on hover */
+.top-nav-btn.inactive {
+    color: #9a9a9a;
+    position: relative;
+    /* anchor for the underline pseudo */
+}
+
+.top-nav-btn.inactive::after {
+    content: "";
+    position: absolute;
+    left: 5%;
+    bottom: -2px;
+    /* 4 px gap below text             */
+    width: 90%;
+    height: 2px;
+    /* underline thickness             */
+    background: #1a1a1a;
+    transform: scaleX(0);
+    /* start hidden                    */
+    transform-origin: left;
+    transition: transform .25s ease-in-out;
+}
+
+.top-nav-btn.inactive:hover::after {
+    transform: scaleX(1);
+    /* animate left→right on hover     */
+}
+
+.top-nav-btn.inactive:hover{
+    color: #1a1a1a;             /* same dark tone as the active tab */
+}
 
 /* Left Sidebar Navigation */
 #lightcurves-navigation {
@@ -37,8 +117,23 @@ body.lightcurves-page {
     gap: 30px;
     align-items: flex-start;
     box-shadow: 4px 0 8px rgba(0, 0, 0, 0.05);
+    border-right: 1px solid #d8d8d8;
     z-index: 10;
 }
+
+/* ───── horizontal rule aligned with navbar bottom ─────────────── */
+#lightcurves-navigation::after {
+    content: "";
+    position: absolute;
+    top: 99px;
+    /* exactly the navbar height */
+    left: 0;
+    width: 100%;
+    height: 1px;
+    background: #d8d8d8;
+    /* subtle grey – adjust if needed */
+}
+
 
 /* Home link/icon in sidebar */
 .nav-home-link {
@@ -134,7 +229,7 @@ main {
     margin-left: 18%;
     /* Leaves space for the sidebar */
     padding: 20px;
-    margin-top: 60px;
+    margin-top: 160px;
     /* Ensure content isn't hidden behind fixed elements */
 }
 
@@ -433,9 +528,10 @@ main {
 }
 
 /* view button in frames table */
-.frames-table .view-btn{
+.frames-table .view-btn {
     /* make it smaller */
-    padding: 6px 14px;        /* top/bottom, left/right */
+    padding: 6px 14px;
+    /* top/bottom, left/right */
     font-size: 0.8em;
 
     /* match the search-info-box rounding */
@@ -445,16 +541,199 @@ main {
     background-color: #e6f9e6;
     border: 1px solid #ccc;
     font-weight: 500;
-    box-shadow: 0 2px 6px rgba(0,0,0,0.05);
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.05);
     cursor: pointer;
     transition: background-color .2s ease, transform .2s ease;
+    display: block;
+    margin: 0 auto;
 }
 
-.frames-table .view-btn:hover{
+.frames-table .view-btn:hover {
     background-color: #d6f3d6;
     transform: translateY(-1px);
 }
 
+
+/* Container for the toggle, centered above the cards */
+.radio-switch {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+
+    /* match your .section-card’s width and centering */
+    max-width: 1200px;
+    width: 100%;
+    margin: 0 auto 24px;
+    padding-left: 20px;
+}
+
+
+/* Turn each label into a clickable “button” */
+.radio-switch .container {
+    display: inline-flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+    background: #fff;
+    border: 1px solid #888;
+    border-radius: 8px;
+    padding: 8px 16px;
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15);
+    cursor: pointer;
+    user-select: none;
+    transition: background 0.2s, box-shadow 0.2s, transform 0.2s;
+    position: relative;
+    color: #333333;
+}
+
+/* Hide the native radio control */
+.radio-switch .container input[type="radio"] {
+    position: absolute;
+    opacity: 0;
+    pointer-events: none;
+    width: 0;
+    height: 0;
+}
+
+/* The custom square “checkbox” */
+.radio-switch .container .checkmark {
+    position: relative;
+    /* for the pseudo-element */
+    width: 1.3em;
+    height: 1.3em;
+    border: 1px solid #888;
+    border-radius: 5px;
+    flex-shrink: 0;
+    transition: all 0.2s;
+}
+
+/* When checked: gradient & heavier shadow */
+/* replace the gradient with white */
+.radio-switch .container input[type="radio"]:checked~.checkmark {
+    background-image: none;
+    background-color: #fff;
+    border: 1px solid black;
+}
+
+
+/* Draw the tick mark (initially hidden) */
+.radio-switch .container .checkmark::after {
+    content: "";
+    position: absolute;
+    top: 0.25em;
+    left: 0.45em;
+    width: 0.25em;
+    height: 0.5em;
+    border: solid black;
+    border-width: 0 0.15em 0.15em 0;
+    transform: rotate(45deg);
+    opacity: 0;
+    transition: opacity 0.2s;
+}
+
+/* Reveal the tick when checked */
+.radio-switch .container input[type="radio"]:checked~.checkmark::after {
+    opacity: 1;
+}
+
+/* highlight the active “button” */
+.radio-switch .container:has(input[type="radio"]:checked) {
+    background-color: #C4D7FF;
+    /* soft blue */
+    border: 1px solid #333333;
+    /* thicker border */
+    color: black;
+}
+
+.radio-switch .container:not(:has(input[type="radio"]:checked)):hover {
+    transform: translateY(-3px);
+}
+
+
+
+
+/* ihu info graphic */
+/* tooltip container */
+
+/* icon next to “IHU” */
+.info-icon {
+    position: relative;
+    /* (already there) */
+    display: inline-flex;
+    /* lets us centre the glyph */
+    align-items: center;
+    justify-content: center;
+
+    /* NEW “badge” styling */
+    width: 18px;
+    /* circle size — change to taste */
+    height: 18px;
+    margin-left: 6px;
+    /* extra gap after “IHU” */
+
+    font-size: 1rem;
+    /* glyph size inside the circle */
+    color: black;
+    /* glyph colour               */
+    background: #c4d7ff;
+    /* badge background (HATPI blue?) */
+    border-radius: 50%;
+    /* makes it a circle           */
+
+
+    cursor: help;
+    user-select: none;
+    font-weight: 700;
+    line-height: 1;
+    /* keeps glyph centred         */
+}
+
+
+/* tooltip container */
+.tooltip-box {
+    display: none;
+    /* hidden until hover/focus */
+    position: absolute;
+    top: calc(100% - 250px);
+    left: calc(100% + 8px);
+    /* anchor tooltip just to the right of the icon */
+    transform: none;
+    width: 620px;
+    /* enlarge the pop-up        */
+    max-width: 100vw;
+    background: #fff;
+    border: 1px solid #ccc;
+    border-radius: 8px;
+    box-shadow: 0 3px 10px rgba(0, 0, 0, .25);
+    padding: 12px;
+    text-align: center;
+    z-index: 50;
+}
+
+/* diagram fills the tooltip */
+.tooltip-img {
+    width: 100%;
+    height: auto;
+    border-radius: 4px;
+    margin-bottom: 8px;
+}
+
+/* ── this rule makes the pop-up appear ── */
+.info-icon:hover .tooltip-box,
+.info-icon:focus .tooltip-box {
+    display: block;
+}
+
+.tooltip-caption {
+    font-weight: 400;
+}
+
+
+.twilight-note {
+    margin-left: 24px;
+    font-style: italic;
+
+}
 
 
 /* CLI query box styling */

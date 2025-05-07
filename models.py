@@ -48,6 +48,7 @@ class Frame(Base):
     IHUID        = Column(Integer, primary_key=True)
     FNUM         = Column(Integer, primary_key=True)
     OBJECT       = Column(String(20))
+    IMAGETYP    = Column(String(32))
     JD           = Column(Float)
     datetime_obs = Column(DateTime)
     EXPTIME      = Column(Float)

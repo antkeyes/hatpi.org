@@ -4,8 +4,8 @@ import os
 import numpy as np
 import math
 from datetime import datetime
-from flask import Flask, request, render_template, jsonify, send_file, Response
-from sqlalchemy import select, and_
+from flask import Flask, request, render_template, jsonify, send_file, Response, current_app
+from sqlalchemy import select, and_, text
 from sqlalchemy.orm import joinedload
 from sqlalchemy.dialects import mysql  # For SQL logging
 from models import (
@@ -18,6 +18,7 @@ from models import (
 )
 from mywcs import create_simple_wcs
 from astropy.wcs import NoConvergence
+from astropy.io import fits
 from astropy.io import fits as afits
 from io import StringIO, BytesIO
 import csv
@@ -25,6 +26,7 @@ from astropy.table import Table
 
 # Base directory where your RED FITS sub-folders live
 FITS_ROOT = "/nfs/php2/ar3/P/HP1/REDUCTION/RED"
+SUB_ROOT = "/nfs/php2/ar3/P/HP1/REDUCTION/SUB"
 
 app = Flask(__name__)
 
@@ -35,6 +37,76 @@ logging.basicConfig(
     level=logging.INFO,
     format="%(asctime)s - %(levelname)s - %(message)s"
 )
+
+
+def paginate(seq, page, per_page):
+    total_pages = max(1, (len(seq) + per_page - 1) // per_page)
+    page = max(1, min(page, total_pages))
+    start = (page - 1) * per_page
+    return seq[start:start + per_page], total_pages, page
+
+
+def query_lightcurve_path(gaia_id: str):
+    session = SessionLocal()
+    try:
+        sql = text("""
+            SELECT path_to_file
+            FROM   HPLC.stitched_lightcurve_files
+            WHERE  Gaia_DR2_ID = :gid
+            LIMIT  1
+        """)
+        return session.execute(sql, {"gid": gaia_id}).scalar()   # None if not found
+    finally:
+        session.close()
+
+# --------------------------------------------------------------------------
+#  Return (path, time[], mag[])   None, None, None → not found / no data
+# --------------------------------------------------------------------------
+def load_lightcurve_arrays(gaia_id: str):
+    session = SessionLocal()
+    try:
+        path = session.execute(
+            text("""
+                SELECT path_to_file
+                FROM   HPLC.stitched_lightcurve_files
+                WHERE  Gaia_DR2_ID = :gid
+                LIMIT  1
+            """),
+            {"gid": gaia_id}
+        ).scalar()
+    finally:
+        session.close()
+
+    if path is None or not os.path.isfile(path):
+        return None, None, None
+
+    # ---------- FITS read --------------------------------------------------
+    with fits.open(path, memmap=False) as hdul:
+        tab = hdul[1].data
+        names = [n.upper() for n in tab.names]
+
+        # --- TIME column ---------------------------------------------------
+        if "TIME" in names:
+            tcol = "TIME"
+        elif "BTJD" in names:
+            tcol = "BTJD"
+        elif "JD" in names:
+            tcol = "JD"
+        else:
+            return path, [], []          # no time column → give up
+
+        # --- Magnitude column ---------------------------------------------
+        mag_candidates = ("FITMAG0", "MAG", "TFA0", "SAP_MAG")
+        mcol = next((c for c in mag_candidates if c.upper() in names), None)
+        if mcol is None:
+            return path, [], []          # no magnitude column either
+
+        time = np.asarray(tab[tcol]).astype(float).tolist()
+        mag  = np.asarray(tab[mcol]).astype(float).tolist()
+
+    return path, time, mag
+
+
 
 # -----------------------------------------------------------------------------
 # Utility: check if a world coordinate is on the CCD via WCS
@@ -163,6 +235,7 @@ def query_frames_by_coordinate(ra_deg, dec_deg,
                 "IHUID":        fr.IHUID,
                 "FNUM":         fr.FNUM,
                 "OBJECT":       fr.OBJECT,
+                "IMAGETYP":     (fr.IMAGETYP or "").lower(),
                 "datetime_obs": fr.datetime_obs.isoformat() if fr.datetime_obs else None,
                 "EXPTIME":      fr.EXPTIME,
                 "relpath":      fr.relpath,
@@ -178,169 +251,267 @@ def query_frames_by_coordinate(ra_deg, dec_deg,
 
 
 # -----------------------------------------------------------------------------
-# HTML search interface
+# HTML search interface – “Frames” view  (/data)
 # -----------------------------------------------------------------------------
-@app.route('/data', methods=['GET', 'POST'])
-def lightcurves():
-    if request.method == 'POST':
-        # Read & validate form inputs
-        ra_str = request.form.get('ra', '').strip()
-        dec_str = request.form.get('dec', '').strip()
+# >>> BEGIN clean frames_page -------------------------------------------------
+# --------------------------------------------------------------------------
+#  Shared search logic     (DO NOT make this a route)
+# --------------------------------------------------------------------------
+# --------------------------------------------------------------------------
+#  Shared search helper used by /data  and  /data/lightcurves
+# --------------------------------------------------------------------------
+def _run_search(active_page: str, show_upcoming: bool):
+    """
+    Frames view  (active_page == "frames"):
+        • POST expects RA / DEC + optional date range
+        • Queries HPCALIB, paginates Object / Twilight frames
+
+    Light-Curves view  (active_page == "lightcurves"):
+        • POST expects a GAIA_ID
+        • Queries HPLC.stitched_lightcurve_files for path_to_file
+
+    Both views:
+        • GET shows an empty form
+        • Always pass active_page + show_upcoming to template
+    """
+
+    # ======================================================================
+    # LIGHT-CURVES  → GAIA-ID search
+    # ======================================================================
+    if active_page == "lightcurves" and request.method == "POST":
+        gaia_id = request.form.get("gaia_id", "").strip()
+
+        if not gaia_id:
+            return render_template(
+                "lightcurves.html",
+                error="Please enter a GAIA ID.",
+                active_page=active_page,
+                show_upcoming=show_upcoming
+            )
+
+        lc_path, lc_time, lc_flux = load_lightcurve_arrays(gaia_id)
+
+        if lc_path is None:
+            return render_template(
+                "lightcurves.html",
+                message="No stitched light-curve found for that GAIA ID.",
+                active_page=active_page,
+                show_upcoming=show_upcoming
+            )
+
+        # success → send data lists to template
+        return render_template(
+            "lightcurves.html",
+            lightcurve_path=lc_path,
+            lc_time=lc_time,
+            lc_flux=lc_flux,
+            active_page=active_page,
+            show_upcoming=show_upcoming
+        )
+
+    # ======================================================================
+    # FRAMES  → RA/DEC search (unchanged from original logic)
+    # ======================================================================
+    if active_page == "frames" and request.method == "POST":
+
+        # 1.  RA / DEC
+        ra_str = request.form.get("ra", "").strip()
+        dec_str = request.form.get("dec", "").strip()
         try:
             ra = float(ra_str)
             dec = float(dec_str)
         except ValueError:
             return render_template(
-                'lightcurves.html',
+                "lightcurves.html",
                 frames=[],
-                error="Please provide valid numeric RA and DEC.",
+                error="Please provide numeric RA and DEC.",
                 ra=ra_str, dec=dec_str,
-                date_type=request.form.get('date_type', 'datetime'),
-                date_min_input=request.form.get('date_min', ''),
-                date_max_input=request.form.get('date_max', '')
+                date_type=request.form.get("date_type", "datetime"),
+                date_min_input=request.form.get("date_min", ""),
+                date_max_input=request.form.get("date_max", ""),
+                active_page=active_page,
+                show_upcoming=show_upcoming
             )
 
-        # Parse dates
-        dt_type = request.form.get('date_type', 'datetime').strip()
-        dmin_in = request.form.get('date_min', '').strip()
-        dmax_in = request.form.get('date_max', '').strip()
+        # 2.  Date range
+        dt_type = request.form.get("date_type", "datetime").strip()
+        dmin_in = request.form.get("date_min", "").strip()
+        dmax_in = request.form.get("date_max", "").strip()
         dmin = dmax = None
-        if dt_type == 'datetime':
-            try:
+        try:
+            if dt_type == "datetime":
                 if dmin_in:
-                    dmin = datetime.strptime(dmin_in, '%Y-%m-%d')
+                    dmin = datetime.strptime(dmin_in, "%Y-%m-%d")
                 if dmax_in:
-                    dmax = datetime.strptime(dmax_in, '%Y-%m-%d')
-            except ValueError:
-                pass
-        else:  # JD
-            try:
+                    dmax = datetime.strptime(dmax_in, "%Y-%m-%d")
+            else:  # JD
                 if dmin_in:
                     dmin = float(dmin_in)
                 if dmax_in:
                     dmax = float(dmax_in)
-            except ValueError:
-                pass
-
-        # Pagination setup
-        page = 1
-        try:
-            page = int(request.form.get('page', '1'))
         except ValueError:
-            pass
-        page_size = 50
+            pass  # ignore bad dates → treat as no limit
 
-        # Run query
+        # 3.  DB query
         all_frames = query_frames_by_coordinate(
-            ra, dec,
-            date_min=dmin, date_max=dmax, date_type=dt_type
+            ra, dec, date_min=dmin, date_max=dmax, date_type=dt_type
         )
-        total = len(all_frames)
-        total_pages = max(1, math.ceil(total / page_size))
-        page = max(1, min(page, total_pages))
-        start = (page - 1) * page_size
-        frames_page = all_frames[start:start + page_size]
 
-        if total == 0:
+        # 4.  Split + paginate
+        obj_list = [f for f in all_frames if f.get("IMAGETYP", "").lower() == "object"]
+        twl_list = [f for f in all_frames if f.get("IMAGETYP", "").lower() == "twilight"]
+
+        PER_PAGE = 50
+        page_obj = int(request.form.get("page_obj", "1") or 1)
+        page_twl = int(request.form.get("page_twl", "1") or 1)
+
+        obj_page, obj_pages, page_obj = paginate(obj_list, page_obj, PER_PAGE)
+        twl_page, twl_pages, page_twl = paginate(twl_list, page_twl, PER_PAGE)
+
+        if not obj_list and not twl_list:
             return render_template(
-                'lightcurves.html',
-                frames=[], total_count=0,
+                "lightcurves.html",
+                frames=None,
                 message="No coverage found.",
                 ra=ra_str, dec=dec_str,
                 date_type=dt_type,
                 date_min_input=dmin_in, date_max_input=dmax_in,
-                page=1, total_pages=1
+                active_page=active_page,
+                show_upcoming=show_upcoming
             )
 
         return render_template(
-            'lightcurves.html',
-            frames=frames_page,
-            total_count=total,
-            page=page,
-            total_pages=total_pages,
+            "lightcurves.html",
+            object_frames=obj_page,
+            twilight_frames=twl_page,
+            object_total=len(obj_list),
+            twilight_total=len(twl_list),
+            page_obj=page_obj,   total_pages_obj=obj_pages,
+            page_twl=page_twl,   total_pages_twl=twl_pages,
+            current_view=request.form.get("view", "object"),
             ra=ra_str, dec=dec_str,
             date_type=dt_type,
-            date_min_input=dmin_in,
-            date_max_input=dmax_in
+            date_min_input=dmin_in, date_max_input=dmax_in,
+            active_page=active_page,
+            show_upcoming=show_upcoming
         )
 
-    # GET: just show empty form
-    return render_template('lightcurves.html', frames=None)
+    # ======================================================================
+    # GET  → empty sidebar (both views)
+    # ======================================================================
+    return render_template(
+        "lightcurves.html",
+        active_page=active_page,
+        show_upcoming=show_upcoming
+    )
+
+
+
+# -----------------------------------------------------------------------------
+# HTML search interface – *Light Curves* view
+# -----------------------------------------------------------------------------
+# --------------------------------------------------------------------------
+#  /data  →  Frames  (default)
+# --------------------------------------------------------------------------
+@app.route("/data", methods=["GET", "POST"])
+def frames_page():
+    return _run_search(active_page="frames", show_upcoming=True)
+
+
+# --------------------------------------------------------------------------
+#  /data/lightcurves  →  Light Curves
+# --------------------------------------------------------------------------
+@app.route("/data/lightcurves", methods=["GET", "POST"])
+def lightcurves_page():
+    return _run_search(active_page="lightcurves", show_upcoming=False)
+
+
 
 # -----------------------------------------------------------------------------
 # Serve FITS files for JS9 viewer
 # -----------------------------------------------------------------------------
-# -----------------------------------------------------------------------------
-# Serve RED FITS files for JS9 viewer, with exhaustive logging & both .fz/.fits
-# -----------------------------------------------------------------------------
-@app.route('/fits/<int:ihuid>/<int:fnum>')
-def serve_fits(ihuid, fnum):
-    app.logger.info(f"[serve_fits] called with ihuid={ihuid}, fnum={fnum}")
+@app.route("/fits/<string:kind>/<int:ihuid>/<int:fnum>")
+def serve_fits(kind: str, ihuid: int, fnum: int):
+    """
+    Stream a FITS file to JS9.
+      kind='red' →  …/RED/.../<base>-red.fits[.fz]
+      kind='sub' →  …/SUB/.../<base>-sub.fits[.fz]
+    """
+    kind = kind.lower().strip()
+    if kind not in ("red", "sub"):
+        current_app.logger.error("[serve_fits] invalid kind=%s", kind)
+        return "Invalid FITS type", 404
 
-    # 1) Fetch the Frame record
+    suffix   = f"-{kind}"                  # "-red" or "-sub"
+    root_dir = FITS_ROOT if kind == "red" else SUB_ROOT
+
+    current_app.logger.info(
+        "[serve_fits] kind=%s ihuid=%d fnum=%d root=%s",
+        kind, ihuid, fnum, root_dir
+    )
+
+    # 1) Frame lookup ----------------------------------------------------
     session = SessionLocal()
     frame = session.query(Frame).filter_by(IHUID=ihuid, FNUM=fnum).one_or_none()
     session.close()
     if frame is None:
-        app.logger.error(f"[serve_fits] No Frame record for {ihuid}/{fnum}")
+        current_app.logger.error("[serve_fits] No Frame %d/%d", ihuid, fnum)
         return "Frame not found", 404
 
-    # 2) Log DB‐side filename info
-    app.logger.info(
-        f"[serve_fits] frame.date_dir={frame.date_dir}, "
-        f"frame.frame_name={frame.frame_name!r}, "
-        f"frame.compression={frame.compression!r}"
-    )
-
-    # 3) Derive the “base” (strip .fits or .fz if present)
+    # 2) Derive the base filename ---------------------------------------
     base = (frame.frame_name or "").strip()
-    if base.lower().endswith('.fits'):
-        base = base[:-5]
-    if base.lower().endswith('.fz'):
-        base = base[:-3]
-    app.logger.info(f"[serve_fits] base name stripped to {base!r}")
+    # strip compression + .fits
+    for ext in (".fits", ".fz"):
+        if base.lower().endswith(ext):
+            base = base[:-len(ext)]
+    # strip any existing "-red" or "-sub"
+    if base.lower().endswith("-red"):
+        base = base[:-4]
+    if base.lower().endswith("-sub"):
+        base = base[:-4]
 
-    # 4) Build the directory under FITS_ROOT
     date_dir = (frame.date_dir or "").strip()
     ihu_dir  = f"ihu{frame.IHUID:02d}"
-    dirpath  = os.path.join(FITS_ROOT, date_dir, ihu_dir)
-    app.logger.info(f"[serve_fits] looking in directory: {dirpath}")
+    dirpath  = os.path.join(root_dir, date_dir, ihu_dir)
 
-    # 5) Try the two possible filenames ***directly*** in that folder
-    candidates = [f"{base}-red.fits.fz", f"{base}-red.fits"]
-    app.logger.warning("CANDIDATES = %s",
-                       [os.path.join(dirpath, c) for c in candidates])
+    current_app.logger.info("[serve_fits] searching %s", dirpath)
+
+    # 3) Candidate filenames --------------------------------------------
+    candidates = [f"{base}{suffix}.fits.fz", f"{base}{suffix}.fits"]
+
     for fname in candidates:
         fullpath = os.path.join(dirpath, fname)
-        app.logger.info(f"[serve_fits] checking existence of {fullpath}")
-        if os.path.isfile(fullpath):
-            app.logger.info(f"[serve_fits] found file: {fullpath}")
-            # 6a) If compressed, decompress in memory
-            if fullpath.lower().endswith('.fz'):
-                try:
-                    with afits.open(fullpath, ignore_missing_end=True, memmap=False) as hdul:
-                        app.logger.info(f"[serve_fits] opened HDUList, count={len(hdul)}")
-                        bio = BytesIO()
-                        hdul.writeto(bio, overwrite=True)
-                        bio.seek(0)
-                        app.logger.info(f"[serve_fits] decompressed to {bio.getbuffer().nbytes} bytes")
-                        return Response(
-                            bio.getvalue(),
-                            mimetype='application/fits',
-                            headers={
-                                'Content-Disposition': f'inline; filename="{fname[:-3]}"'
-                            }
-                        )
-                except Exception as e:
-                    app.logger.exception(f"[serve_fits] error decompressing {fullpath}")
-                    return f"Error reading FITS: {e}", 500
-            # 6b) Otherwise just stream the file
-            return send_file(fullpath, mimetype='application/fits')
+        current_app.logger.debug("[serve_fits] checking %s", fullpath)
 
-    # 7) Not found
-    app.logger.error(
-        f"[serve_fits] none of the RED files exist under {dirpath}: {candidates}"
-    )
+        if not os.path.isfile(fullpath):
+            continue
+
+        current_app.logger.info("[serve_fits] found %s", fullpath)
+
+        # 4) On-the-fly decompression for .fz ----------------------------
+        if fullpath.lower().endswith(".fz"):
+            try:
+                with afits.open(fullpath, ignore_missing_end=True, memmap=False) as hdul:
+                    buf = BytesIO()
+                    hdul.writeto(buf, overwrite=True)
+                    buf.seek(0)
+                    current_app.logger.info(
+                        "[serve_fits] decompressed to %d bytes", buf.getbuffer().nbytes
+                    )
+                    return Response(
+                        buf.getvalue(),
+                        mimetype="application/fits",
+                        headers={"Content-Disposition": f'inline; filename="{fname[:-3]}"'}
+                    )
+            except Exception as exc:
+                current_app.logger.exception("[serve_fits] decompress error")
+                return f"Error reading FITS: {exc}", 500
+
+        # 5) Plain .fits – stream directly -------------------------------
+        return send_file(fullpath, mimetype="application/fits")
+
+    # 6) Nothing matched -------------------------------------------------
+    current_app.logger.error("[serve_fits] none of %s in %s", candidates, dirpath)
     return "FITS file not found", 404
 
 
