@@ -107,11 +107,6 @@
     {% if show_upcoming %}
     <section id="upcoming">
       <div class="section-card">
-        <!-- <div class="title-container">
-          <div class="title-row">
-            <h1 class="section-title">Upcoming Data Releases</h1>
-          </div>
-        </div> -->
         <div class="content-area">
           <h1 class="section-title">Upcoming Data Releases</h1>
           <p>
@@ -144,6 +139,16 @@
         <div class="title-container">
           <h2 class="section-title">Light Curve</h2>
         </div>
+        <!-- series selector -->
+        <div id="series-switch" class="radio-switch" style="margin-bottom:20px;">
+          {% for sname in lc_series.keys()|sort %}
+          <label class="container">
+            <input type="radio" name="seriesType" value="{{ sname }}" {% if loop.first %}checked{% endif %}>
+            <span class="checkmark"></span>
+            {{ sname }}
+          </label>
+          {% endfor %}
+        </div>
         <div class="content-area">
           <p><strong>Stitched FITS:</strong> {{ lightcurve_path }}</p>
           <div id="lc-plot" style="width:100%;height:500px;"></div>
@@ -152,21 +157,35 @@
 
       <!-- Inline Plotly build -->
       <script>
-        const lcTime = {{ lc_time| tojson }};
-        const lcFlux = {{ lc_flux| tojson }};
+        /* ---- data injected by Jinja ---- */
+        const lcTime = {{ lc_time   | tojson }};
+        const lcSeries = {{ lc_series | tojson }};
 
-        Plotly.newPlot('lc-plot', [{
+        /* ---- initial series (first key) ---- */
+        const defaultKey = Object.keys(lcSeries)[0];
+        const trace = {
           x: lcTime,
-          y: lcFlux,                   // this var name is fine – it’s now magnitudes
+          y: lcSeries[defaultKey],
           mode: 'markers',
-          marker: { size: 3 }
-        }], {
+          marker: { size: 3 },
+          name: defaultKey
+        };
+        const layout = {
           margin: { l: 60, r: 20, t: 30, b: 40 },
           xaxis: { title: 'Time (BJD / JD)' },
-          yaxis: { title: 'Magnitude (mag)', autorange: 'reversed' }  // inverted axis
-        });
+          yaxis: { title: 'Magnitude (mag)', autorange: 'reversed' }
+        };
+        Plotly.newPlot('lc-plot', [trace], layout);
 
+        /* ---- radio-button listener ---- */
+        document.querySelectorAll('input[name="seriesType"]').forEach(radio => {
+          radio.addEventListener('change', () => {
+            const key = radio.value;
+            Plotly.restyle('lc-plot', { y: [lcSeries[key]], name: [key] });
+          });
+        });
       </script>
+
       {% endif %}
 
 

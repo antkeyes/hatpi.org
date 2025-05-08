@@ -159,6 +159,12 @@ def query_lightcurve_path(gaia_id: str):
 #  Return (path, time[], mag[])   None, None, None → not found / no data
 # --------------------------------------------------------------------------
 def load_lightcurve_arrays(gaia_id: str):
+    """
+    Returns (path, time_list, series_dict)
+      • series_dict maps series-name → list of magnitudes
+        e.g. {"FITMAG0": [...], "EPD0": [...], ...}
+      • If no file / no data → (None, None, None)
+    """
     session = SessionLocal()
     try:
         path = session.execute(
@@ -176,31 +182,26 @@ def load_lightcurve_arrays(gaia_id: str):
     if path is None or not os.path.isfile(path):
         return None, None, None
 
-    # ---------- FITS read --------------------------------------------------
     with fits.open(path, memmap=False) as hdul:
-        tab = hdul[1].data
+        tab   = hdul[1].data
         names = [n.upper() for n in tab.names]
 
-        # --- TIME column ---------------------------------------------------
-        if "TIME" in names:
-            tcol = "TIME"
-        elif "BTJD" in names:
-            tcol = "BTJD"
-        elif "JD" in names:
-            tcol = "JD"
-        else:
-            return path, [], []          # no time column → give up
+        # --- Time column ---------------------------------------------------
+        tcol = next((c for c in ("TIME", "BTJD", "JD") if c in names), None)
+        if tcol is None:
+            return path, [], {}
 
-        # --- Magnitude column ---------------------------------------------
-        mag_candidates = ("FITMAG0", "MAG", "TFA0", "SAP_MAG")
-        mcol = next((c for c in mag_candidates if c.upper() in names), None)
-        if mcol is None:
-            return path, [], []          # no magnitude column either
+        time = tab[tcol].astype(float).tolist()
 
-        time = np.asarray(tab[tcol]).astype(float).tolist()
-        mag  = np.asarray(tab[mcol]).astype(float).tolist()
+        # --- Gather nine series -------------------------------------------
+        series = {}
+        for base in ("FITMAG", "EPD", "TFA"):
+            for i in range(3):
+                cname = f"{base}{i}"
+                if cname in names:
+                    series[cname] = tab[cname].astype(float).tolist()
 
-    return path, time, mag
+        return path, time, series
 
 
 
@@ -396,9 +397,9 @@ def _run_search(active_page: str, show_upcoming: bool):
                 show_upcoming=show_upcoming
             )
 
-        lc_path, lc_time, lc_flux = load_lightcurve_arrays(gaia_id)
+        lc_path, lc_time, lc_series = load_lightcurve_arrays(gaia_id)
 
-        if lc_path is None:
+        if lc_path is None or not lc_series:
             return render_template(
                 "lightcurves.html",
                 message="No light curve found for that GAIA ID.",
@@ -411,7 +412,7 @@ def _run_search(active_page: str, show_upcoming: bool):
             "lightcurves.html",
             lightcurve_path=lc_path,
             lc_time=lc_time,
-            lc_flux=lc_flux,
+            lc_series=lc_series,
             active_page=active_page,
             show_upcoming=show_upcoming
         )
