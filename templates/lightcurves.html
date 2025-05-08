@@ -29,6 +29,11 @@
         Light&nbsp;Curves
       </a>
     </nav>
+    {% if current_user.is_authenticated %}
+    <a href="{{ url_for('auth.logout') }}" class="top-nav-btn inactive logout-push">Log&nbsp;out</a>
+    {% endif %}
+
+
   </header>
 
   <!-- ── Left Sidebar Navigation ─────────────────────────────────── -->
@@ -802,7 +807,58 @@
     });
   </script>
 
+  {% if not current_user.is_authenticated %}
+  {% include "_auth_modal.html" %}
+  {% endif %}
 
+  <script>
+    document.addEventListener("DOMContentLoaded", () => {
+      const tabLogin = document.getElementById("tab-login");
+      const tabRegister = document.getElementById("tab-register");
+      const formLogin = document.getElementById("login-form");
+      const formReg = document.getElementById("register-form");
+
+      /* helpers ----------------------------------------------------------- */
+      function showLogin() {
+        tabLogin.classList.add("active");
+        tabRegister.classList.remove("active");
+        formLogin.classList.add("active");
+        formReg.classList.remove("active");
+      }
+
+      function showRegister() {
+        tabRegister.classList.add("active");
+        tabLogin.classList.remove("active");
+        formReg.classList.add("active");
+        formLogin.classList.remove("active");
+      }
+
+      /* tab-click handlers ------------------------------------------------ */
+      tabLogin.addEventListener("click", showLogin);
+      tabRegister.addEventListener("click", showRegister);
+
+      /* always reset to Log in whenever the modal is opened --------------- */
+      const backdrop = document.getElementById("auth-backdrop");
+      backdrop.addEventListener("click", () => showLogin());   // close by clicking backdrop
+      document.addEventListener("keydown", e => {
+        if (e.key === "Escape") showLogin();                    // close with Esc
+      });
+      // If you have a dedicated “close” button, call showLogin() there too.
+    });
+  </script>
+
+
+
+  {% with msgs = get_flashed_messages() %}
+  {% if msgs %}
+  <div id="toast">{{ msgs[0] }}</div>
+  <script>
+    const t = document.getElementById("toast");
+    requestAnimationFrame(() => { t.style.opacity = 1; });
+    setTimeout(() => { t.style.opacity = 0; }, 3500);      // fade after 3.5 s
+  </script>
+  {% endif %}
+  {% endwith %}
 
 
 </body>

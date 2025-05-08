@@ -1,0 +1,72 @@
+{# templates/_auth_modal.html – styled modal #}
+<div id="auth-backdrop"></div>
+
+<div id="auth-modal" class="form_container">
+
+  <!-- tab header --------------------------------------------------------->
+  <div class="tab-header">
+    <button id="tab-login" class="tab-btn active">Log in</button>
+    <button id="tab-register" class="tab-btn">Register</button>
+  </div>
+
+  <!-- intro text -->
+  <p class="modal-intro">
+    To access the HATPI data portal, please log in or create an account
+  </p>
+
+  <!-- --------------------------  LOGIN FORM  --------------------------- -->
+  <form id="login-form" class="auth-form active" method="post" action="{{ url_for('auth.login') }}">
+    {{ csrf_token() if csrf_token }}
+    <div class="input_container">
+      <label class="input_label" for="login_email">Email</label>
+      <input id="login_email" name="email" type="email" placeholder="name@mail.com" class="input_field" required>
+    </div>
+
+    <div class="input_container">
+      <label class="input_label" for="login_pw">Password</label>
+      <input id="login_pw" name="password" type="password" placeholder="Password" class="input_field" required>
+    </div>
+
+
+    <button class="sign-in_btn" type="submit">Log&nbsp;In</button>
+
+    {% with m = get_flashed_messages() %}
+    {% for msg in m %}<p class="flash">{{ msg }}</p>{% endfor %}
+    {% endwith %}
+  </form>
+
+  <!-- -------------------------  REGISTER FORM  ------------------------- -->
+  <form id="register-form" class="auth-form" method="post" action="{{ url_for('auth.register') }}">
+    {{ csrf_token() if csrf_token }}
+    <div class="input_container">
+      <label class="input_label" for="reg_name">Name&nbsp;(optional)</label>
+      <input id="reg_name" name="name" type="text" placeholder="Your name" class="input_field">
+    </div>
+
+    <div class="input_container">
+      <label class="input_label" for="reg_email">Email</label>
+      <input id="reg_email" name="email" type="email" placeholder="name@mail.com" class="input_field" required>
+    </div>
+
+    <div class="input_container">
+      <label class="input_label" for="reg_pw">Password&nbsp;(min&nbsp;8&nbsp;chars)</label>
+      <input id="reg_pw" name="password" type="password" placeholder="Password" minlength="8" class="input_field"
+        required>
+    </div>
+
+    <div id="notify-row" class="input_container checkbox_container">
+      <input type="checkbox" id="reg_notify" name="notifications" value="1" form="register-form">
+      <label for="reg_notify">
+        Check if you would like to receive email notifications
+        for future data sets
+      </label>
+    </div>
+
+
+    <button class="sign-in_btn" type="submit">Create&nbsp;Account</button>
+
+    {% with m = get_flashed_messages() %}
+    {% for msg in m %}<p class="flash">{{ msg }}</p>{% endfor %}
+    {% endwith %}
+  </form>
+</div>

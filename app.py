@@ -4,7 +4,9 @@ import os
 import numpy as np
 import math
 from datetime import datetime
-from flask import Flask, request, render_template, jsonify, send_file, Response, current_app
+from flask import Flask, request, render_template, jsonify, send_file, Response, current_app, Blueprint, redirect, url_for, flash
+from auth_db import SessionAuth, User
+from flask_login import LoginManager, login_user, logout_user, login_required, current_user
 from sqlalchemy import select, and_, text
 from sqlalchemy.orm import joinedload
 from sqlalchemy.dialects import mysql  # For SQL logging
@@ -24,11 +26,19 @@ from io import StringIO, BytesIO
 import csv
 from astropy.table import Table
 
-# Base directory where your RED FITS sub-folders live
+# Base directory where  RED FITS sub-folders live
 FITS_ROOT = "/nfs/php2/ar3/P/HP1/REDUCTION/RED"
 SUB_ROOT = "/nfs/php2/ar3/P/HP1/REDUCTION/SUB"
 
 app = Flask(__name__)
+
+app.config["SECRET_KEY"] = os.environ["FLASK_SECRET_KEY"]
+
+app.config.update(
+    SESSION_COOKIE_SECURE   = True,   # HTTPS only
+    SESSION_COOKIE_HTTPONLY = True,   # JS can’t read it
+    SESSION_COOKIE_SAMESITE = "Lax",  # blocks most CSRF
+)
 
 # -----------------------------------------------------------------------------
 # Logging configuration
@@ -37,6 +47,92 @@ logging.basicConfig(
     level=logging.INFO,
     format="%(asctime)s - %(levelname)s - %(message)s"
 )
+
+
+
+login_manager = LoginManager()
+login_manager.login_view = "auth.login"      # redirect target
+login_manager.init_app(app)
+
+@login_manager.user_loader
+def load_user(user_id):
+    db = SessionAuth()
+    return db.query(User).get(int(user_id))
+
+
+
+auth_bp = Blueprint("auth", __name__, url_prefix="/auth")
+
+@auth_bp.route("/register", methods=["GET", "POST"])
+def register():
+    # ------------------------------------------------------------------
+    # POST  →  handle the submitted form from the modal
+    # ------------------------------------------------------------------
+    if request.method == "POST":
+        
+        app.logger.info("RAW POST ⇒ %s", request.form.to_dict(flat=False))
+        
+        name     = request.form.get("name")
+        email    = request.form["email"].lower()
+        password = request.form["password"]
+        
+        wants_notif = "notifications" in request.form
+        app.logger.info("wants_notif computed ⇒ %s", wants_notif)   # ← 1️⃣
+
+
+        db = SessionAuth()
+
+        # 1.  Duplicate-email check
+        if db.query(User).filter_by(email=email).first():
+            flash("Email already registered")
+            return redirect(url_for("frames_page"))
+
+        # 2.  Basic password length
+        if len(password) < 8:         # ← adjust if you want 8+
+            flash("Use a longer password")
+            return redirect(url_for("frames_page"))
+
+        # 3.  Create the record
+        user = User.create(db, name, email, password, notifications=wants_notif)
+        app.logger.info("DB says notifications stored ⇒ %s", user.notifications)  # ← 2️⃣
+
+        # 4.  Auto-log-in & success message
+        login_user(user, remember=True)                # <— signed in now
+        flash("Account created — you’re now logged in!")
+
+        return redirect(url_for("frames_page"))        # <— go to /data
+
+    # ------------------------------------------------------------------
+    # GET  →  fallback (rarely used; modal handles normal flow)
+    # ------------------------------------------------------------------
+    return render_template("register.html")
+
+
+@auth_bp.route("/login", methods=["GET", "POST"])
+def login():
+    if request.method == "POST":
+        email = request.form["email"].lower()
+        password = request.form["password"]
+
+        app.logger.info("Login attempt for %s", email)
+
+        db = SessionAuth()
+        user = db.query(User).filter_by(email=email).first()
+        if user and user.verify_password(password):
+
+            app.logger.info("Password OK — logging user in")
+
+            login_user(user, remember=True)        # sets secure session cookie
+            next_page = request.args.get("next") or url_for("frames_page")
+            return redirect(next_page)
+        flash("Invalid credentials")
+    return render_template("login.html")
+
+@auth_bp.route("/logout")
+@login_required
+def logout():
+    logout_user()
+    return redirect(url_for("frames_page"))
 
 
 def paginate(seq, page, per_page):
@@ -261,6 +357,17 @@ def query_frames_by_coordinate(ra_deg, dec_deg,
 #  Shared search helper used by /data  and  /data/lightcurves
 # --------------------------------------------------------------------------
 def _run_search(active_page: str, show_upcoming: bool):
+    
+    app.logger.info("Inside _run_search  |  current_user.is_authenticated = %s",
+                    current_user.is_authenticated)
+    
+    if not current_user.is_authenticated:
+        return render_template(
+            "lightcurves.html",
+            active_page=active_page,
+            show_upcoming=show_upcoming
+        )
+        
     """
     Frames view  (active_page == "frames"):
         • POST expects RA / DEC + optional date range
@@ -294,7 +401,7 @@ def _run_search(active_page: str, show_upcoming: bool):
         if lc_path is None:
             return render_template(
                 "lightcurves.html",
-                message="No stitched light-curve found for that GAIA ID.",
+                message="No light curve found for that GAIA ID.",
                 active_page=active_page,
                 show_upcoming=show_upcoming
             )
@@ -608,6 +715,10 @@ def data_api():
     # Default JSON
     return jsonify({"total_frames": len(results), "frames": results}), 200
 
+app.register_blueprint(auth_bp)
+
 # -----------------------------------------------------------------------------
 if __name__ == "__main__":
     app.run(debug=True, port=5002)
+    
+
