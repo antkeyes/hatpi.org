@@ -149,6 +149,13 @@
           </label>
           {% endfor %}
         </div>
+
+        <!-- ERRO-2 toggleable error bars -->
+        <label style="display:inline-flex;gap:6px;align-items:center;margin-left:16px;">
+          <input type="checkbox" id="err-toggle"> Show error bars
+        </label>
+
+
         <div class="content-area">
           <p><strong>Stitched FITS:</strong> {{ lightcurve_path }}</p>
           <div id="lc-plot" style="width:100%;height:500px;"></div>
@@ -157,34 +164,61 @@
 
       <!-- Inline Plotly build -->
       <script>
-        /* ---- data injected by Jinja ---- */
+        /* ----------  data injected by Jinja  ---------- */
         const lcTime = {{ lc_time   | tojson }};
         const lcSeries = {{ lc_series | tojson }};
+        const lcMeta = {{ lc_meta   | tojson }};
 
-        /* ---- initial series (first key) ---- */
+        /* ----------  DOM handles  ---------- */
+        const errToggle = document.getElementById("err-toggle");
+        const seriesRadios = document.querySelectorAll('input[name="seriesType"]');
+
+        /* ----------  helper: (re)plot selected series  ---------- */
+        function plotSeries(key) {
+          /* base trace: time vs magnitude */
+          const traceOpts = { y: [lcSeries[key]], name: [key] };
+
+          /* choose matching ERR column (FITMAG0 → ERR0, EPD2 → ERR2, etc.) */
+          const errKey = key.replace(/^(FITMAG|EPD|TFA)/, "ERR");
+
+          if (errToggle.checked && lcMeta[errKey]) {
+            traceOpts.error_y = [{
+              type: "data",
+              array: lcMeta[errKey],
+              visible: true
+            }];
+          } else {
+            traceOpts.error_y = [null];      // hide error bars
+          }
+
+          Plotly.restyle('lc-plot', traceOpts);
+        }
+
+        /* ----------  initial plot (default series = first key)  ---------- */
         const defaultKey = Object.keys(lcSeries)[0];
-        const trace = {
+        Plotly.newPlot('lc-plot', [{
           x: lcTime,
           y: lcSeries[defaultKey],
           mode: 'markers',
           marker: { size: 3 },
           name: defaultKey
-        };
-        const layout = {
+        }], {
           margin: { l: 60, r: 20, t: 30, b: 40 },
           xaxis: { title: 'Time (BJD / JD)' },
           yaxis: { title: 'Magnitude (mag)', autorange: 'reversed' }
-        };
-        Plotly.newPlot('lc-plot', [trace], layout);
+        });
 
-        /* ---- radio-button listener ---- */
-        document.querySelectorAll('input[name="seriesType"]').forEach(radio => {
-          radio.addEventListener('change', () => {
-            const key = radio.value;
-            Plotly.restyle('lc-plot', { y: [lcSeries[key]], name: [key] });
-          });
+        /* ----------  event listeners  ---------- */
+        seriesRadios.forEach(r => r.addEventListener('change', () => {
+          if (r.checked) plotSeries(r.value);
+        }));
+
+        errToggle.addEventListener('change', () => {
+          const active = document.querySelector('input[name="seriesType"]:checked').value;
+          plotSeries(active);
         });
       </script>
+
 
       {% endif %}
 
