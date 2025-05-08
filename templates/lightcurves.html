@@ -156,6 +156,8 @@
         </label>
 
 
+
+
         <div class="content-area">
           <p><strong>Stitched FITS:</strong> {{ lightcurve_path }}</p>
           <div id="lc-plot" style="width:100%;height:500px;"></div>
@@ -176,7 +178,16 @@
         /* ----------  helper: (re)plot selected series  ---------- */
         function plotSeries(key) {
           /* base trace: time vs magnitude */
-          const traceOpts = { y: [lcSeries[key]], name: [key] };
+          const traceOpts = {
+            y: [lcSeries[key]],
+            name: [key],
+            text: [lcMeta.FRAMEKEY || []],
+            customdata: [lcTime.map((_, i) => [
+              lcMeta.Z ? lcMeta.Z[i] : null,
+              lcMeta.HA ? lcMeta.HA[i] : null
+            ])]
+          };
+
 
           /* choose matching ERR column (FITMAG0 → ERR0, EPD2 → ERR2, etc.) */
           const errKey = key.replace(/^(FITMAG|EPD|TFA)/, "ERR");
@@ -201,12 +212,27 @@
           y: lcSeries[defaultKey],
           mode: 'markers',
           marker: { size: 3 },
-          name: defaultKey
+          name: defaultKey,
+
+          /* ---- enhanced hover ---- */
+          text: lcMeta.FRAMEKEY || [],
+          customdata: lcTime.map((_, i) => [
+            lcMeta.Z ? lcMeta.Z[i] : null,   // airmass
+            lcMeta.HA ? lcMeta.HA[i] : null    // hour angle
+          ]),
+          hovertemplate:
+            'Time: %{x}<br>' +
+            'Mag: %{y:.4f}<br>' +
+            '%{text}<br>' +
+            'Airmass: %{customdata[0]:.2f}<br>' +
+            'HA: %{customdata[1]:.2f} h' +
+            '<extra></extra>'
         }], {
           margin: { l: 60, r: 20, t: 30, b: 40 },
           xaxis: { title: 'Time (BJD / JD)' },
           yaxis: { title: 'Magnitude (mag)', autorange: 'reversed' }
         });
+
 
         /* ----------  event listeners  ---------- */
         seriesRadios.forEach(r => r.addEventListener('change', () => {
