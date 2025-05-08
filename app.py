@@ -156,15 +156,22 @@ def query_lightcurve_path(gaia_id: str):
         session.close()
 
 # --------------------------------------------------------------------------
-#  Return (path, time[], mag[])   None, None, None → not found / no data
+#  Return (path, time_list, series_dict, meta_dict)
+#
+#    • series_dict → magnitude arrays keyed by FITMAG0-2, EPD0-2, TFA0-2
+#    • meta_dict   → supporting arrays:
+#        ERR0-2, FLAG0-2, HA, Z (airmass), FRAMEKEY, plus a Lomb-Scargle
+#          periodogram dict  { "freq":[...], "power":[...] }
+#
+#    • If the GAIA ID isn’t found or file is missing ⇒ (None, None, None, None)
 # --------------------------------------------------------------------------
 def load_lightcurve_arrays(gaia_id: str):
-    """
-    Returns (path, time_list, series_dict)
-      • series_dict maps series-name → list of magnitudes
-        e.g. {"FITMAG0": [...], "EPD0": [...], ...}
-      • If no file / no data → (None, None, None)
-    """
+    from astropy.io import fits
+    from astropy.timeseries import LombScargle
+    import numpy as np
+    from sqlalchemy import text
+
+    # 1. Look up path in database
     session = SessionLocal()
     try:
         path = session.execute(
@@ -180,8 +187,9 @@ def load_lightcurve_arrays(gaia_id: str):
         session.close()
 
     if path is None or not os.path.isfile(path):
-        return None, None, None
+        return None, None, None, None
 
+    # 2.  Read FITS & build lists
     with fits.open(path, memmap=False) as hdul:
         tab   = hdul[1].data
         names = [n.upper() for n in tab.names]
@@ -189,19 +197,60 @@ def load_lightcurve_arrays(gaia_id: str):
         # --- Time column ---------------------------------------------------
         tcol = next((c for c in ("TIME", "BTJD", "JD") if c in names), None)
         if tcol is None:
-            return path, [], {}
+            return path, [], {}, {}
 
         time = tab[tcol].astype(float).tolist()
 
-        # --- Gather nine series -------------------------------------------
-        series = {}
+        # --- Magnitude series + errors + flags ----------------------------
+        series = {}   # mags to plot
+        meta   = {}   # parallel data (err, flag, etc.)
         for base in ("FITMAG", "EPD", "TFA"):
             for i in range(3):
-                cname = f"{base}{i}"
-                if cname in names:
-                    series[cname] = tab[cname].astype(float).tolist()
+                mag_key = f"{base}{i}"
+                if mag_key in names:
+                    series[mag_key] = tab[mag_key].astype(float).tolist()
 
-        return path, time, series
+                    err_key  = f"ERR{i}"
+                    flag_key = f"FLAG{i}"
+                    if err_key in names:
+                        meta[err_key] = tab[err_key].astype(float).tolist()
+                    if flag_key in names:
+                        meta[flag_key] = tab[flag_key].astype(int).tolist()
+
+        # --- Extra per-row metadata ---------------------------------------
+        for col in ("HA", "Z", "FRAMEKEY"):
+            if col in names:
+                meta[col] = tab[col].tolist()
+
+        # 3.  Quick Lomb-Scargle periodogram (use TFA0 if available)
+        if series:
+            mag_for_ls = (series.get("TFA0")
+                          or series.get("EPD0")
+                          or next(iter(series.values())))
+            # guard against NaNs
+            good = ~np.isnan(mag_for_ls)
+            if good.sum() > 20:        # need a few points
+                freq, power = LombScargle(
+                    np.asarray(time)[good],
+                    np.asarray(mag_for_ls)[good],
+                    nterms=1
+                ).autopower()
+                meta["PERIODOGRAM"] = {
+                    "freq":  freq.tolist(),
+                    "power": power.tolist()
+                }
+
+        # 4.  OPTIONAL: adaptive thinning for huge LC (>15k points)
+        if len(time) > 15000:
+            step = 5
+            time = time[::step]
+            for key_dict in (series, meta):
+                for k, arr in key_dict.items():
+                    if isinstance(arr, list) and len(arr) == len(time)*step:
+                        key_dict[k] = arr[::step]
+
+        return path, time, series, meta
+
 
 
 
@@ -397,7 +446,7 @@ def _run_search(active_page: str, show_upcoming: bool):
                 show_upcoming=show_upcoming
             )
 
-        lc_path, lc_time, lc_series = load_lightcurve_arrays(gaia_id)
+        lc_path, lc_time, lc_series, lc_meta = load_lightcurve_arrays(gaia_id)
 
         if lc_path is None or not lc_series:
             return render_template(
@@ -413,6 +462,7 @@ def _run_search(active_page: str, show_upcoming: bool):
             lightcurve_path=lc_path,
             lc_time=lc_time,
             lc_series=lc_series,
+            lc_meta=lc_meta,
             active_page=active_page,
             show_upcoming=show_upcoming
         )
