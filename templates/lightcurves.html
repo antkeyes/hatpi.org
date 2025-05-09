@@ -130,7 +130,7 @@
           <p>
             HATPI data are <strong>publicly available for immediate use</strong>.
             When you publish results that rely on these data, please
-            <strong>acknowledge the project</strong> with the statement below and cite the project website.
+            <strong>acknowledge the project</strong> with the following statement and cite the project website.
           </p>
 
           <blockquote style="margin:1rem 0; padding:0.75rem 1rem;
@@ -161,7 +161,7 @@
     </section>
     {% endif %}
 
-
+    <span id="results-top" style="position:relative;top:-16px;"></span>
     <section id="results">
 
       {# -----------------------------------------------------------------------
@@ -492,7 +492,7 @@
       <div class="section-card">
         <div class="title-container">
           <div class="title-row">
-            <h1 class="section-title">⬅️ Awaiting search</h1>
+            <h1 class="section-title">Awaiting search</h1>
           </div>
         </div>
         <div class="content-area"><!-- placeholder --></div>
@@ -765,6 +765,32 @@
       {% endif %}
 
     </section>
+
+    {% set need_scroll = (
+    lightcurve_path
+    or object_total
+    or twilight_total
+    or error 
+    or message
+    ) %}
+    {% if need_scroll %}
+    <script>
+      document.addEventListener('DOMContentLoaded', () => {
+        // wait a tick so the browser’s own “scroll restoration” settles first
+        setTimeout(() => {
+          const anchor = document.getElementById('results-top');
+          if (!anchor) return;
+
+          /* offset = height of the fixed top navbar (adjust if you change CSS) */
+          const NAV_HEIGHT = 100;                        // px
+          const y = anchor.getBoundingClientRect().top + window.scrollY - NAV_HEIGHT;
+
+          window.scrollTo({ top: y, behavior: 'smooth' });
+        }, 25);   // 25 ms is enough – long after the restore, imperceptible to users
+      });
+    </script>
+    {% endif %}
+
 
 
     <!-- CLI Query Card -->
