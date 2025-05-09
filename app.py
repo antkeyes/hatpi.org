@@ -170,12 +170,34 @@ def query_lightcurve_path(gaia_id: str):
 #
 #  “fast” is median-binned to ~ ≤ max_points_fast points; “full” is untouched.
 # --------------------------------------------------------------------------
-def load_lightcurve_arrays(gaia_id: str, max_points_fast: int = 5000):
-    import os, numpy as np
+def load_lightcurve_arrays(
+        gaia_id: str,
+        max_points_fast: int = 5000,
+        min_period: float = 0.1,        # d   ❶ LS lower bound
+        max_period: float = 20.0        # d   ❷ LS upper bound
+    ):
+    """
+    Returns (path, data_dict, meta_dict)
+
+      • data_dict = {
+          "fast": {"time": [...], "series": {FITMAG0: [...], …}},
+          "full": {"time": [...], "series": {...}}
+        }
+
+      • meta_dict = {
+          "fast": {ERR0:[...], FLAG0:[...], HA:[...], Z:[...],
+                   FRAMEKEY:[...], PERIODOGRAM:{freq:[...], power:[...]},
+                   DEFAULT_PERIOD:<float>},
+          "full": {...   same keys   ...}
+        }
+    """
+    import os
+    import numpy as np
     from astropy.io import fits
+    from astropy.timeseries import LombScargle
     from sqlalchemy import text
 
-    # ── locate stitched FITS ------------------------------------------------
+    # ── locate stitched FITS -----------------------------------------------
     session = SessionLocal()
     path = session.execute(
         text("""SELECT path_to_file
@@ -191,31 +213,31 @@ def load_lightcurve_arrays(gaia_id: str, max_points_fast: int = 5000):
 
     # ── open FITS and pull columns -----------------------------------------
     with fits.open(path, memmap=False) as hdul:
-        tab   = hdul[1].data            # binary table
+        tab   = hdul[1].data
         names = [n.upper() for n in tab.names]
 
         # --- time axis -----------------------------------------------------
-        tcol = next((c for c in ("TIME", "BTJD", "JD") if c in names), None)
-        if tcol is None:
+        time_col = next((c for c in ("TIME", "BTJD", "JD") if c in names), None)
+        if time_col is None:
             return path, {}, {}
 
-        time_full = tab[tcol].astype(float).tolist()
+        time_full = tab[time_col].astype(float).tolist()
 
         # --- build full-resolution series & meta --------------------------
         series_full, meta_full = {}, {}
 
         for base in ("FITMAG", "EPD", "TFA"):
             for i in range(3):
-                col = f"{base}{i}"
-                if col in names:
-                    series_full[col] = tab[col].astype(float).tolist()
+                mag_key = f"{base}{i}"
+                if mag_key in names:
+                    series_full[mag_key] = tab[mag_key].astype(float).tolist()
 
-                    errk  = f"ERR{i}"
-                    flagk = f"FLAG{i}"
-                    meta_full[errk]  = (tab[errk ].astype(float).tolist()
-                                        if errk  in names else None)
-                    meta_full[flagk] = (tab[flagk].astype(int  ).tolist()
-                                        if flagk in names else None)
+                    err_key  = f"ERR{i}"
+                    flag_key = f"FLAG{i}"
+                    meta_full[err_key]  = (tab[err_key ].astype(float).tolist()
+                                           if err_key  in names else None)
+                    meta_full[flag_key] = (tab[flag_key].astype(int  ).tolist()
+                                           if flag_key in names else None)
 
         for col in ("HA", "Z", "FRAMEKEY"):
             if col in names:
@@ -223,38 +245,53 @@ def load_lightcurve_arrays(gaia_id: str, max_points_fast: int = 5000):
 
     # ── helper: numeric median-bin -----------------------------------------
     def median_bin(arr, step):
-        """Return a binned list using median; arr must be numeric."""
         return [float(np.median(arr[i:i+step]))
                 for i in range(0, len(arr), step)]
 
     # ── create FAST (binned) copies ----------------------------------------
     if len(time_full) > max_points_fast:
         step = int(np.ceil(len(time_full) / max_points_fast))
-
-        # time → mean of each bin
-        time_fast = [float(np.mean(time_full[i:i+step]))
-                     for i in range(0, len(time_full), step)]
-
-        # magnitude series
+        time_fast   = [float(np.mean(time_full[i:i+step]))
+                       for i in range(0, len(time_full), step)]
         series_fast = {k: median_bin(v, step) for k, v in series_full.items()}
 
-        # meta: bin numeric arrays, keep strings unchanged
         meta_fast = {}
         for k, arr in meta_full.items():
             if arr is None:
                 meta_fast[k] = None
                 continue
             try:
-                float(arr[0])                 # test numeric
+                float(arr[0])
                 meta_fast[k] = median_bin(arr, step)
-            except Exception:                 # strings, lists of strings
-                meta_fast[k] = arr            # leave unbinned
+            except Exception:
+                meta_fast[k] = arr
     else:
         time_fast   = time_full
         series_fast = series_full
         meta_fast   = meta_full
 
-    # ── package & return ----------------------------------------------------
+    # ── Lomb-Scargle on FAST data ------------------------------------------
+    if series_fast:
+        # choose trend-filtered if present, else first series
+        pref_key = "TFA0" if "TFA0" in series_fast else next(iter(series_fast))
+        t_arr = np.asarray(time_fast)
+        y_arr = np.asarray(series_fast[pref_key])
+
+        ls = LombScargle(t_arr, y_arr, nterms=1, fit_mean=True)
+        freq, power = ls.autopower(method="fast",
+                                   minimum_frequency=1/max_period,
+                                   maximum_frequency=1/min_period,
+                                   samples_per_peak=5)
+
+        per_dict = {"freq": freq.tolist(), "power": power.tolist()}
+        best_period = float(1 / freq[np.argmax(power)])
+
+        meta_fast["PERIODOGRAM"]   = per_dict
+        meta_fast["DEFAULT_PERIOD"] = best_period
+        meta_full["PERIODOGRAM"]   = per_dict      # reuse same LS for full
+        meta_full["DEFAULT_PERIOD"] = best_period
+
+    # ── package -------------------------------------------------------------
     data = {
         "fast": {"time": time_fast,  "series": series_fast},
         "full": {"time": time_full,  "series": series_full}
@@ -419,7 +456,7 @@ def query_frames_by_coordinate(ra_deg, dec_deg,
 # --------------------------------------------------------------------------
 #  Shared search helper used by /data  and  /data/lightcurves
 # --------------------------------------------------------------------------
-def _run_search(active_page: str, show_upcoming: bool):
+def _run_search(active_page: str, show_upcoming: bool, show_policy: bool):
     
     app.logger.info("Inside _run_search  |  current_user.is_authenticated = %s",
                     current_user.is_authenticated)
@@ -428,7 +465,8 @@ def _run_search(active_page: str, show_upcoming: bool):
         return render_template(
             "lightcurves.html",
             active_page=active_page,
-            show_upcoming=show_upcoming
+            show_upcoming=show_upcoming,
+            show_policy=show_policy
         )
         
     """
@@ -456,7 +494,8 @@ def _run_search(active_page: str, show_upcoming: bool):
                 "lightcurves.html",
                 error="Please enter a GAIA ID.",
                 active_page=active_page,
-                show_upcoming=show_upcoming
+                show_upcoming=show_upcoming,
+                show_policy=show_policy
             )
 
         lc_path, lc_data, lc_meta = load_lightcurve_arrays(gaia_id)
@@ -466,7 +505,8 @@ def _run_search(active_page: str, show_upcoming: bool):
                 "lightcurves.html",
                 message="No light curve found for that GAIA ID.",
                 active_page=active_page,
-                show_upcoming=show_upcoming
+                show_upcoming=show_upcoming,
+                show_policy=show_policy
             )
 
         # success → send data lists to template
@@ -476,7 +516,8 @@ def _run_search(active_page: str, show_upcoming: bool):
             lc_data=lc_data,
             lc_meta=lc_meta,
             active_page=active_page,
-            show_upcoming=show_upcoming
+            show_upcoming=show_upcoming,
+            show_policy=show_policy
         )
 
     # ======================================================================
@@ -500,7 +541,8 @@ def _run_search(active_page: str, show_upcoming: bool):
                 date_min_input=request.form.get("date_min", ""),
                 date_max_input=request.form.get("date_max", ""),
                 active_page=active_page,
-                show_upcoming=show_upcoming
+                show_upcoming=show_upcoming,
+                show_policy=show_policy
             )
 
         # 2.  Date range
@@ -547,7 +589,8 @@ def _run_search(active_page: str, show_upcoming: bool):
                 date_type=dt_type,
                 date_min_input=dmin_in, date_max_input=dmax_in,
                 active_page=active_page,
-                show_upcoming=show_upcoming
+                show_upcoming=show_upcoming,
+                show_policy=show_policy
             )
 
         return render_template(
@@ -563,7 +606,8 @@ def _run_search(active_page: str, show_upcoming: bool):
             date_type=dt_type,
             date_min_input=dmin_in, date_max_input=dmax_in,
             active_page=active_page,
-            show_upcoming=show_upcoming
+            show_upcoming=show_upcoming,
+            show_policy=show_policy
         )
 
     # ======================================================================
@@ -572,7 +616,8 @@ def _run_search(active_page: str, show_upcoming: bool):
     return render_template(
         "lightcurves.html",
         active_page=active_page,
-        show_upcoming=show_upcoming
+        show_upcoming=show_upcoming,
+        show_policy=show_policy
     )
 
 
@@ -585,7 +630,7 @@ def _run_search(active_page: str, show_upcoming: bool):
 # --------------------------------------------------------------------------
 @app.route("/data", methods=["GET", "POST"])
 def frames_page():
-    return _run_search(active_page="frames", show_upcoming=True)
+    return _run_search(active_page="frames", show_upcoming=True, show_policy=True)
 
 
 # --------------------------------------------------------------------------
@@ -593,7 +638,7 @@ def frames_page():
 # --------------------------------------------------------------------------
 @app.route("/data/lightcurves", methods=["GET", "POST"])
 def lightcurves_page():
-    return _run_search(active_page="lightcurves", show_upcoming=False)
+    return _run_search(active_page="lightcurves", show_upcoming=False, show_policy=True)
 
 
 

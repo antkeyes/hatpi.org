@@ -104,18 +104,60 @@
 
   <!-- Main content area for query results -->
   <main>
-    {% if show_upcoming %}
+    {# ─── Public-data notice + data-use policy ────────────────────────── #}
+    {% if show_upcoming or show_policy %}
     <section id="upcoming">
+
+      {% if show_upcoming %}
       <div class="section-card">
         <div class="content-area">
-          <h1 class="section-title">Upcoming Data Releases</h1>
+          <h1 class="section-title">Upcoming&nbsp;Data&nbsp;Releases</h1>
           <p>
-            We’re excited to announce that light curves and high-resolution image stamps will soon be available
-            for direct viewing and download. In the meantime, our frame search feature lets you explore HATPI’s
-            observations to determine if we’ve captured the astronomical phenomena you’re researching.
+            Light curves are now being released on a rolling basis. While we finish
+            preparing the full set—together with forthcoming high-resolution image
+            stamps—please use the Frame&nbsp;Search to see where and when HATPI
+            observed your object of interest.
           </p>
         </div>
       </div>
+      {% endif %}
+
+      {% if show_policy %}
+      <div class="section-card">
+        <div class="content-area">
+          <h1 class="section-title">Data&nbsp;Use&nbsp;Policy</h1>
+
+          <p>
+            HATPI data are <strong>publicly available for immediate use</strong>.
+            When you publish results that rely on these data, please
+            <strong>acknowledge the project</strong> with the statement below and cite the project website.
+          </p>
+
+          <blockquote style="margin:1rem 0; padding:0.75rem 1rem;
+                         background:#F7F9FC; border-left:4px solid #8FA8FF;">
+            <p style="margin:0; font-size:0.95rem;">
+              “This paper makes use of data produced by the HATPI project, located in
+              Chile at Las Campanas Observatory of the Carnegie Institution for
+              Science and operated by the Department of Astrophysical Sciences at
+              Princeton University. External funding for HATPI has been provided by
+              the Gordon and Betty Moore Foundation, the David and Lucile Packard
+              Foundation, and the Mount Cuba Astronomical Foundation.”
+            </p>
+          </blockquote>
+
+          <p style="margin-bottom:0.5rem;">
+            Reference (until our project paper is published):
+            <code>https://hatpi.org</code>
+          </p>
+
+          <p style="font-size:0.9rem;">
+            For large downloads, questions, or collaboration requests, contact
+            <a href="mailto:hatpi@astro.princeton.edu">hat-projects@princeton.edu</a>
+          </p>
+        </div>
+      </div>
+      {% endif %}
+
     </section>
     {% endif %}
 
@@ -135,183 +177,306 @@
 
       {% if lightcurve_path %}
       <!-- Light-curve card ------------------------------------------------- -->
-      <div class="section-card">
-        <div class="title-container">
-          <h2 class="section-title">Light Curve</h2>
+      <!-- ─────────────────────────── ①  LIGHT-CURVE  PANEL  ─────────────────────────── -->
+      <div class="lc-card">
+        <!-- Display-settings toolbar (series, color, error bars, resolution, downloads) -->
+        <div class="lc-toolbar" id="display-bar">
+          <div class="lc-group">
+
+            <!-- ── Series selector (radio “pills”) ─────────────────────────────── -->
+            <fieldset class="lc-fieldset">
+              {% for sname in lc_data.fast.series.keys() | sort %}
+              <label class="radio-pill">
+                <input type="radio" name="seriesType" value="{{ sname }}" {% if loop.first %}checked{% endif %}>
+                <span>{{ sname }}</span>
+              </label>
+              {% endfor %}
+            </fieldset>
+
+            <!-- ── color-by selector ─────────────────────────────────────────── -->
+            <label class="lc-label">
+              <span>color&nbsp;by</span>
+              <span class="select-wrap">
+                <select id="color-by">
+                  <option value="">None</option>
+                  <option value="Z">Airmass&nbsp;(Z)</option>
+                  <option value="HA">Hour&nbsp;angle&nbsp;(HA)</option>
+                </select>
+              </span>
+            </label>
+
+            <!-- ── Error-bar toggle ───────────────────────────────────────────── -->
+            <label class="lc-checkbox">
+              <input type="checkbox" id="err-toggle">
+              <span>Error&nbsp;bars</span>
+            </label>
+
+            <!-- ── Resolution toggle ──────────────────────────────────────────── -->
+            <label class="lc-checkbox">
+              <input type="checkbox" id="res-toggle">
+              <span>Full&nbsp;resolution (slower)</span>
+            </label>
+
+            <span class="spacer"></span> <!-- pushes download buttons rightwards -->
+
+            <!-- ── Download buttons ───────────────────────────────────────────── -->
+            <button id="save-png" class="visit-button sm">PNG</button>
+            <button id="save-csv" class="visit-button sm">CSV</button>
+          </div>
         </div>
-        <!-- series selector -->
-        <div id="series-switch" class="radio-switch" style="margin-bottom:20px;">
-          {% for sname in lc_data.fast.series.keys()|sort %}
-          <label class="container">
-            <input type="radio" name="seriesType" value="{{ sname }}" {% if loop.first %}checked{% endif %}>
-            <span class="checkmark"></span>
-            {{ sname }}
-          </label>
-          {% endfor %}
-        </div>
 
-        <!-- ERRO-2 toggleable error bars -->
-        <label style="display:inline-flex;gap:6px;align-items:center;margin-left:16px;">
-          <input type="checkbox" id="err-toggle"> Show error bars
-        </label>
-
-
-        <!-- color by airmass and hour angle -->
-        <select id="color-by" style="margin-left:16px;">
-          <option value="">Color by…</option>
-          <option value="Z">Airmass (Z)</option>
-          <option value="HA">Hour angle (HA)</option>
-        </select>
-
-        <!-- resolution binning toggle -->
-        <label style="display:inline-flex;gap:6px;align-items:center;margin:8px 0 12px 0;">
-          <input type="checkbox" id="res-toggle">
-          Full resolution (slower)
-        </label>
-
-        <!-- actual LC plot -->
-        <div class="content-area">
-          <p><strong>Stitched FITS:</strong> {{ lightcurve_path }}</p>
-          <div id="lc-plot" style="width:100%;height:500px;"></div>
-        </div>
-
-        <!-- download buttons -->
-        <button id="save-png" class="visit-button">Download PNG</button>
-        <button id="save-csv" class="visit-button">Download CSV</button>
-
-
+        <!-- Dot-plot canvas -->
+        <div id="lc-plot" class="lc-plot"></div>
       </div>
 
-      <!-- Inline Plotly build -->
+
+
+      <!-- ─────────────────────────── ②  FOLD-CONTROL  BAR  ─────────────────────────── -->
+      <div class="lc-card lc-toolbar-only">
+        <div class="lc-toolbar lc-phasebar" id="fold-bar">
+          <div class="lc-group">
+
+            <!-- Period input -->
+            <label class="lc-label">
+              <span>Period</span>
+              <input type="number" step="0.0001" id="fold-period">
+              <span class="unit">d</span>
+            </label>
+
+            <!-- Phase-zero offset input -->
+            <label class="lc-label">
+              <span>Phase&nbsp;0</span>
+              <input type="number" step="0.0001" id="phase0" value="0">
+              <span class="unit">d</span>
+            </label>
+
+            <!-- Action buttons -->
+            <button id="apply-fold" class="visit-button sm">Apply</button>
+            <button id="reset-fold" class="visit-button sm">Reset</button>
+          </div>
+        </div>
+      </div>
+
+
+
+      <!-- ─────────────────────────── ③  PERIODOGRAM  PANEL  ────────────────────────── -->
+      <div class="lc-card">
+        <!-- Lomb–Scargle (power-spectrum) canvas -->
+        <div id="ls-plot" class="ls-plot"></div>
+      </div>
+
+
+
       <script>
-        /* ---------- data injected by Jinja ---------- */
-        const lcData = {{ lc_data | tojson }};   // {fast:{time,series}, full:{…}}
+        /* ------------------------------------------------------------------
+           HATPI light-curve viewer
+           – phase-folding, error-bars, color-by, fast/full resolution,
+             PNG / CSV downloads
+           ------------------------------------------------------------------ */
+
+        window.addEventListener('load', () => {
+
+          /* ---------- data injected by Jinja ------------------------------ */
+          const lcData = {{ lc_data | tojson
+        }};   // {fast:{time,series}, full:{…}}
         const lcMeta = {{ lc_meta | tojson }};   // {fast:{…}, full:{…}}
 
-        let currentRes = 'fast';                                  // default = binned
-        let currentSeries = Object.keys(lcData.fast.series)[0];      // first key
+        /* (exposed for console debugging – remove later if you like) */
+        window.lcData = lcData;
+        window.lcMeta = lcMeta;
 
-        /* ---------- helper: build Plotly trace ---------- */
-        function buildTrace(key) {
-          const timeArr = lcData[currentRes].time;
-          const magArr = lcData[currentRes].series[key];
+        /* ---------- global state ---------------------------------------- */
+        let currentRes = 'fast';                            // 'fast' | 'full'
+        let currentSeries = Object.keys(lcData.fast.series)[0];
 
-          /* ----- colour-by (optional) ----- */
-          const colourKey = document.getElementById("color-by")?.value;
-          const markerObj = (colourKey && lcMeta[currentRes][colourKey])
+        /* ---------- build Plotly trace (time OR phase) ------------------ */
+        function buildTrace(key, xArr) {
+
+          const colorKey = document.getElementById('color-by')?.value;
+          const errVisible = document.getElementById('err-toggle')?.checked;
+          const markerObj = (colorKey && lcMeta[currentRes][colorKey])
             ? {
               size: 3,
-              color: lcMeta[currentRes][colourKey],
+              color: lcMeta[currentRes][colorKey],
               colorscale: 'Viridis',
-              colorbar: { title: colourKey }
+              colorbar: { title: colorKey }
             }
             : { size: 3 };
 
-          /* ----- error bars ----- */
-          const errVisible = document.getElementById("err-toggle")?.checked;
-          const errKey = key.replace(/^(FITMAG|EPD|TFA)/, "ERR");
+          const errKey = key.replace(/^(FITMAG|EPD|TFA)/, 'ERR');
           const errArr = lcMeta[currentRes][errKey];
+          const yArr = lcData[currentRes].series[key];
 
           return {
-            x: timeArr,
-            y: magArr,
+            x: xArr,
+            y: yArr,
             mode: 'markers',
             marker: markerObj,
             name: key,
             text: lcMeta[currentRes].FRAMEKEY || [],
-            customdata: timeArr.map((_, i) => [
-              lcMeta[currentRes].Z ? lcMeta[currentRes].Z[i] : null,   // airmass
-              lcMeta[currentRes].HA ? lcMeta[currentRes].HA[i] : null    // hour angle
+            customdata: xArr.map((_, i) => [
+              lcMeta[currentRes].Z ? lcMeta[currentRes].Z[i] : null,
+              lcMeta[currentRes].HA ? lcMeta[currentRes].HA[i] : null
             ]),
             hovertemplate:
-              'Time: %{x}<br>Mag: %{y:.4f}<br>%{text}<br>' +
+              'Time/Phase: %{x}<br>Mag: %{y:.4f}<br>%{text}<br>' +
               'Airmass: %{customdata[0]:.2f}<br>' +
               'HA: %{customdata[1]:.2f} h<extra></extra>',
             error_y: (errVisible && errArr)
-              ? { type: "data", array: errArr, visible: true }
+              ? { type: 'data', array: errArr, visible: true }
               : undefined
           };
         }
 
-        /* ---------- (re)plot selected series ---------- */
+        /* ---------- (re)draw current series ----------------------------- */
         function plotSeries(key) {
           currentSeries = key;
+          const xArr = lcData[currentRes].time;
+          Plotly.react('lc-plot', [buildTrace(key, xArr)], {
+            margin: { l: 60, r: 20, t: 30, b: 40 },
+            xaxis: { title: 'Time (BJD / JD)' },
+            yaxis: { title: 'Magnitude (mag)', autorange: 'reversed' }
+          });
+        }
+        plotSeries(currentSeries);                   // initial draw
+
+        /* ===== Lomb-Scargle periodogram ================================= */
+        Plotly.newPlot('ls-plot', [{
+          x: lcMeta.fast.PERIODOGRAM.freq,
+          y: lcMeta.fast.PERIODOGRAM.power,
+          mode: 'lines',
+          line: { width: 1 }
+        }], {
+          margin: { l: 60, r: 20, t: 20, b: 40 },
+          xaxis: { title: 'Frequency (1/day)' },
+          yaxis: { title: 'Power' }
+        });
+
+        /* default P field */
+        const fldPeriod = document.getElementById('fold-period');
+        if (fldPeriod && lcMeta.fast.DEFAULT_PERIOD)
+          fldPeriod.value = lcMeta.fast.DEFAULT_PERIOD.toFixed(4);
+
+        /* ---------- helper: fold & plot --------------------------------- */
+        function foldAndPlot(P) {
+          /* -------- guard clause ----------------------------------------- */
+          if (!P || isNaN(P)) return;
+
+          /* -------- read the phase-zero offset (days) -------------------- */
+          const t0Field = document.getElementById('phase0');
+          const t0 = t0Field ? parseFloat(t0Field.value) || 0 : 0;
+
+          /* -------- compute fractional phase 0 ≤ φ < 1 ------------------- */
+          const tArr = lcData[currentRes].time;           // original times (days)
+          const phaseArr = tArr.map(t => {
+            const phi = ((t - t0) % P) / P;   // may be negative
+            return (phi + 1) % 1;             // wrap into [0,1)
+          });
+
+          /* -------- re-plot ---------------------------------------------- */
           Plotly.react('lc-plot',
-            [buildTrace(key)],
+            [buildTrace(currentSeries, phaseArr)],
             {
               margin: { l: 60, r: 20, t: 30, b: 40 },
-              xaxis: { title: 'Time (BJD / JD)' },
+              xaxis: {
+                title: `Phase (P = ${Number(P).toFixed(4)} d, ϕ₀ = ${t0.toFixed(4)} d)`,
+                range: [0, 1]
+              },
               yaxis: { title: 'Magnitude (mag)', autorange: 'reversed' }
-            });
+            }
+          );
         }
 
-        /* ---------- initial plot ---------- */
-        plotSeries(currentSeries);
 
-        /* ---------- UI listeners ---------- */
-        document.querySelectorAll('input[name="seriesType"]').forEach(r =>
-          r.addEventListener('change', () => r.checked && plotSeries(r.value))
+        /* click a periodogram peak → fold --------------------------------*/
+        document.getElementById('ls-plot')
+          .on('plotly_click', ev => {
+            const freq = ev.points[0].x;
+            const P = 1 / freq;
+            if (fldPeriod) fldPeriod.value = P.toFixed(4);
+            foldAndPlot(P);
+          });
+
+        /* apply / reset buttons ------------------------------------------ */
+        document.getElementById('apply-fold')
+          .addEventListener('click', () =>
+            foldAndPlot(parseFloat(fldPeriod.value))
+          );
+
+        document.getElementById('reset-fold')
+          .addEventListener('click', () => {
+            plotSeries(currentSeries);
+            if (fldPeriod && lcMeta.fast.DEFAULT_PERIOD)
+              fldPeriod.value = lcMeta.fast.DEFAULT_PERIOD.toFixed(4);
+          });
+
+        /* ---------- UI listeners (series / err / color / res) ---------- */
+        document.querySelectorAll('input[name="seriesType"]').forEach(radio =>
+          radio.addEventListener('change', () => {
+            if (!radio.checked) return;
+            const xt = document.querySelector('#lc-plot .xtitle');
+            const isPhase = xt ? xt.textContent.includes('Phase') : false;
+            currentSeries = radio.value;
+            isPhase ? foldAndPlot(parseFloat(fldPeriod.value))
+              : plotSeries(currentSeries);
+          })
         );
 
         document.getElementById('err-toggle')
-          ?.addEventListener('change', () => plotSeries(currentSeries));
+          .addEventListener('change', () => {
+            const xt = document.querySelector('#lc-plot .xtitle');
+            const isPhase = xt ? xt.textContent.includes('Phase') : false;
+            isPhase ? foldAndPlot(parseFloat(fldPeriod.value))
+              : plotSeries(currentSeries);
+          });
 
         document.getElementById('color-by')
-          ?.addEventListener('change', () => plotSeries(currentSeries));
+          .addEventListener('change', () => {
+            const xt = document.querySelector('#lc-plot .xtitle');
+            const isPhase = xt ? xt.textContent.includes('Phase') : false;
+            isPhase ? foldAndPlot(parseFloat(fldPeriod.value))
+              : plotSeries(currentSeries);
+          });
 
         document.getElementById('res-toggle')
           .addEventListener('change', e => {
             currentRes = e.target.checked ? 'full' : 'fast';
-            plotSeries(currentSeries);
+            const xt = document.querySelector('#lc-plot .xtitle');
+            const isPhase = xt ? xt.textContent.includes('Phase') : false;
+            isPhase ? foldAndPlot(parseFloat(fldPeriod.value))
+              : plotSeries(currentSeries);
           });
 
+        /* ---------- downloads ------------------------------------------- */
         document.getElementById('save-png')
-          .addEventListener('click', () => Plotly.downloadImage('lc-plot', { filename: 'lightcurve' }));
+          .addEventListener('click', () =>
+            Plotly.downloadImage('lc-plot', { filename: 'lightcurve' })
+          );
+
         document.getElementById('save-csv')
           .addEventListener('click', () => {
             const active = document.querySelector('input[name="seriesType"]:checked').value;
-
             const timeArr = lcData[currentRes].time;
             const magArr = lcData[currentRes].series[active];
+
             if (!timeArr || !magArr) {
               alert('Series data not found');
               return;
             }
 
             const rows = ['time,' + active];
-            magArr.forEach((mag, i) => rows.push(`${timeArr[i]},${mag}`));
+            magArr.forEach((m, i) => rows.push(`${timeArr[i]},${m}`));
 
             const blob = new Blob([rows.join('\n')], { type: 'text/csv' });
             const url = URL.createObjectURL(blob);
-
             const a = document.createElement('a');
             a.href = url;
             a.download = `lightcurve_${active}.csv`;
             a.click();
             URL.revokeObjectURL(url);
           });
-
-
-
-        /* ---- click a point → open JS9 frame ---- */
-        // document.getElementById('lc-plot')
-        //   .on('plotly_click', ev => {
-        //     const idx = ev.points[0].pointIndex;
-        //     const key = lcMeta[currentRes].FRAMEKEY?.[idx];   // "1-364888_01-sub"
-        //     if (!key) return;
-
-        //     /* 1) split at first hyphen  →  ["1", "364888_01-sub"] */
-        //     const [ihuid, rest] = key.split('-', 2);
-
-        //     /* 2) split rest at first underscore  →  ["364888", "01-sub"] */
-        //     const [fnum] = rest.split('_', 2);
-
-        //     if (ihuid && fnum) {
-        //       /* open the *subtracted* image */
-        //       window.open(`/fits/sub/${ihuid}/${fnum}`, '_blank');
-        //     }
-        //   });
-
+        
+        });  /* end window.load wrapper */
       </script>
 
 
