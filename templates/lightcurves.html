@@ -169,11 +169,17 @@
           Full resolution (slower)
         </label>
 
-
+        <!-- actual LC plot -->
         <div class="content-area">
           <p><strong>Stitched FITS:</strong> {{ lightcurve_path }}</p>
           <div id="lc-plot" style="width:100%;height:500px;"></div>
         </div>
+
+        <!-- download buttons -->
+        <button id="save-png" class="visit-button">Download PNG</button>
+        <button id="save-csv" class="visit-button">Download CSV</button>
+
+
       </div>
 
       <!-- Inline Plotly build -->
@@ -258,6 +264,54 @@
             currentRes = e.target.checked ? 'full' : 'fast';
             plotSeries(currentSeries);
           });
+
+        document.getElementById('save-png')
+          .addEventListener('click', () => Plotly.downloadImage('lc-plot', { filename: 'lightcurve' }));
+        document.getElementById('save-csv')
+          .addEventListener('click', () => {
+            const active = document.querySelector('input[name="seriesType"]:checked').value;
+
+            const timeArr = lcData[currentRes].time;
+            const magArr = lcData[currentRes].series[active];
+            if (!timeArr || !magArr) {
+              alert('Series data not found');
+              return;
+            }
+
+            const rows = ['time,' + active];
+            magArr.forEach((mag, i) => rows.push(`${timeArr[i]},${mag}`));
+
+            const blob = new Blob([rows.join('\n')], { type: 'text/csv' });
+            const url = URL.createObjectURL(blob);
+
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `lightcurve_${active}.csv`;
+            a.click();
+            URL.revokeObjectURL(url);
+          });
+
+
+
+        /* ---- click a point → open JS9 frame ---- */
+        // document.getElementById('lc-plot')
+        //   .on('plotly_click', ev => {
+        //     const idx = ev.points[0].pointIndex;
+        //     const key = lcMeta[currentRes].FRAMEKEY?.[idx];   // "1-364888_01-sub"
+        //     if (!key) return;
+
+        //     /* 1) split at first hyphen  →  ["1", "364888_01-sub"] */
+        //     const [ihuid, rest] = key.split('-', 2);
+
+        //     /* 2) split rest at first underscore  →  ["364888", "01-sub"] */
+        //     const [fnum] = rest.split('_', 2);
+
+        //     if (ihuid && fnum) {
+        //       /* open the *subtracted* image */
+        //       window.open(`/fits/sub/${ihuid}/${fnum}`, '_blank');
+        //     }
+        //   });
+
       </script>
 
 
