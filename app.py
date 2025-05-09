@@ -156,101 +156,114 @@ def query_lightcurve_path(gaia_id: str):
         session.close()
 
 # --------------------------------------------------------------------------
-#  Return (path, time_list, series_dict, meta_dict)
+#  Return (path, data_dict, meta_dict)
 #
-#    • series_dict → magnitude arrays keyed by FITMAG0-2, EPD0-2, TFA0-2
-#    • meta_dict   → supporting arrays:
-#        ERR0-2, FLAG0-2, HA, Z (airmass), FRAMEKEY, plus a Lomb-Scargle
-#          periodogram dict  { "freq":[...], "power":[...] }
+#  data_dict = {
+#      "fast": {"time": [...], "series": { "FITMAG0":[...], ... }},
+#      "full": {"time": [...], "series": { ... }}
+#  }
 #
-#    • If the GAIA ID isn’t found or file is missing ⇒ (None, None, None, None)
+#  meta_dict = {
+#      "fast": { "ERR0":[...], "FLAG0":[...], "HA":[...], "Z":[...], "FRAMEKEY":[...] },
+#      "full": { ... }   # same keys, but full resolution
+#  }
+#
+#  “fast” is median-binned to ~ ≤ max_points_fast points; “full” is untouched.
 # --------------------------------------------------------------------------
-def load_lightcurve_arrays(gaia_id: str):
+def load_lightcurve_arrays(gaia_id: str, max_points_fast: int = 5000):
+    import os, numpy as np
     from astropy.io import fits
-    from astropy.timeseries import LombScargle
-    import numpy as np
     from sqlalchemy import text
 
-    # 1. Look up path in database
+    # ── locate stitched FITS ------------------------------------------------
     session = SessionLocal()
-    try:
-        path = session.execute(
-            text("""
-                SELECT path_to_file
+    path = session.execute(
+        text("""SELECT path_to_file
                 FROM   HPLC.stitched_lightcurve_files
                 WHERE  Gaia_DR2_ID = :gid
-                LIMIT  1
-            """),
-            {"gid": gaia_id}
-        ).scalar()
-    finally:
-        session.close()
+                LIMIT  1"""),
+        {"gid": gaia_id}
+    ).scalar()
+    session.close()
 
     if path is None or not os.path.isfile(path):
-        return None, None, None, None
+        return None, {}, {}
 
-    # 2.  Read FITS & build lists
+    # ── open FITS and pull columns -----------------------------------------
     with fits.open(path, memmap=False) as hdul:
-        tab   = hdul[1].data
+        tab   = hdul[1].data            # binary table
         names = [n.upper() for n in tab.names]
 
-        # --- Time column ---------------------------------------------------
+        # --- time axis -----------------------------------------------------
         tcol = next((c for c in ("TIME", "BTJD", "JD") if c in names), None)
         if tcol is None:
-            return path, [], {}, {}
+            return path, {}, {}
 
-        time = tab[tcol].astype(float).tolist()
+        time_full = tab[tcol].astype(float).tolist()
 
-        # --- Magnitude series + errors + flags ----------------------------
-        series = {}   # mags to plot
-        meta   = {}   # parallel data (err, flag, etc.)
+        # --- build full-resolution series & meta --------------------------
+        series_full, meta_full = {}, {}
+
         for base in ("FITMAG", "EPD", "TFA"):
             for i in range(3):
-                mag_key = f"{base}{i}"
-                if mag_key in names:
-                    series[mag_key] = tab[mag_key].astype(float).tolist()
+                col = f"{base}{i}"
+                if col in names:
+                    series_full[col] = tab[col].astype(float).tolist()
 
-                    err_key  = f"ERR{i}"
-                    flag_key = f"FLAG{i}"
-                    if err_key in names:
-                        meta[err_key] = tab[err_key].astype(float).tolist()
-                    if flag_key in names:
-                        meta[flag_key] = tab[flag_key].astype(int).tolist()
+                    errk  = f"ERR{i}"
+                    flagk = f"FLAG{i}"
+                    meta_full[errk]  = (tab[errk ].astype(float).tolist()
+                                        if errk  in names else None)
+                    meta_full[flagk] = (tab[flagk].astype(int  ).tolist()
+                                        if flagk in names else None)
 
-        # --- Extra per-row metadata ---------------------------------------
         for col in ("HA", "Z", "FRAMEKEY"):
             if col in names:
-                meta[col] = tab[col].tolist()
+                meta_full[col] = tab[col].tolist()
 
-        # 3.  Quick Lomb-Scargle periodogram (use TFA0 if available)
-        if series:
-            mag_for_ls = (series.get("TFA0")
-                          or series.get("EPD0")
-                          or next(iter(series.values())))
-            # guard against NaNs
-            good = ~np.isnan(mag_for_ls)
-            if good.sum() > 20:        # need a few points
-                freq, power = LombScargle(
-                    np.asarray(time)[good],
-                    np.asarray(mag_for_ls)[good],
-                    nterms=1
-                ).autopower()
-                meta["PERIODOGRAM"] = {
-                    "freq":  freq.tolist(),
-                    "power": power.tolist()
-                }
+    # ── helper: numeric median-bin -----------------------------------------
+    def median_bin(arr, step):
+        """Return a binned list using median; arr must be numeric."""
+        return [float(np.median(arr[i:i+step]))
+                for i in range(0, len(arr), step)]
 
-        # 4.  OPTIONAL: adaptive thinning for huge LC (>15k points)
-        if len(time) > 15000:
-            step = 5
-            time = time[::step]
-            for key_dict in (series, meta):
-                for k, arr in key_dict.items():
-                    if isinstance(arr, list) and len(arr) == len(time)*step:
-                        key_dict[k] = arr[::step]
+    # ── create FAST (binned) copies ----------------------------------------
+    if len(time_full) > max_points_fast:
+        step = int(np.ceil(len(time_full) / max_points_fast))
 
-        return path, time, series, meta
+        # time → mean of each bin
+        time_fast = [float(np.mean(time_full[i:i+step]))
+                     for i in range(0, len(time_full), step)]
 
+        # magnitude series
+        series_fast = {k: median_bin(v, step) for k, v in series_full.items()}
+
+        # meta: bin numeric arrays, keep strings unchanged
+        meta_fast = {}
+        for k, arr in meta_full.items():
+            if arr is None:
+                meta_fast[k] = None
+                continue
+            try:
+                float(arr[0])                 # test numeric
+                meta_fast[k] = median_bin(arr, step)
+            except Exception:                 # strings, lists of strings
+                meta_fast[k] = arr            # leave unbinned
+    else:
+        time_fast   = time_full
+        series_fast = series_full
+        meta_fast   = meta_full
+
+    # ── package & return ----------------------------------------------------
+    data = {
+        "fast": {"time": time_fast,  "series": series_fast},
+        "full": {"time": time_full,  "series": series_full}
+    }
+    meta = {
+        "fast": meta_fast,
+        "full": meta_full
+    }
+    return path, data, meta
 
 
 
@@ -446,9 +459,9 @@ def _run_search(active_page: str, show_upcoming: bool):
                 show_upcoming=show_upcoming
             )
 
-        lc_path, lc_time, lc_series, lc_meta = load_lightcurve_arrays(gaia_id)
+        lc_path, lc_data, lc_meta = load_lightcurve_arrays(gaia_id)
 
-        if lc_path is None or not lc_series:
+        if lc_path is None or not lc_data:
             return render_template(
                 "lightcurves.html",
                 message="No light curve found for that GAIA ID.",
@@ -460,8 +473,7 @@ def _run_search(active_page: str, show_upcoming: bool):
         return render_template(
             "lightcurves.html",
             lightcurve_path=lc_path,
-            lc_time=lc_time,
-            lc_series=lc_series,
+            lc_data=lc_data,
             lc_meta=lc_meta,
             active_page=active_page,
             show_upcoming=show_upcoming

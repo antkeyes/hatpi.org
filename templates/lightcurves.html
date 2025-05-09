@@ -141,7 +141,7 @@
         </div>
         <!-- series selector -->
         <div id="series-switch" class="radio-switch" style="margin-bottom:20px;">
-          {% for sname in lc_series.keys()|sort %}
+          {% for sname in lc_data.fast.series.keys()|sort %}
           <label class="container">
             <input type="radio" name="seriesType" value="{{ sname }}" {% if loop.first %}checked{% endif %}>
             <span class="checkmark"></span>
@@ -156,6 +156,18 @@
         </label>
 
 
+        <!-- color by airmass and hour angle -->
+        <select id="color-by" style="margin-left:16px;">
+          <option value="">Color by…</option>
+          <option value="Z">Airmass (Z)</option>
+          <option value="HA">Hour angle (HA)</option>
+        </select>
+
+        <!-- resolution binning toggle -->
+        <label style="display:inline-flex;gap:6px;align-items:center;margin:8px 0 12px 0;">
+          <input type="checkbox" id="res-toggle">
+          Full resolution (slower)
+        </label>
 
 
         <div class="content-area">
@@ -166,83 +178,86 @@
 
       <!-- Inline Plotly build -->
       <script>
-        /* ----------  data injected by Jinja  ---------- */
-        const lcTime = {{ lc_time   | tojson }};
-        const lcSeries = {{ lc_series | tojson }};
-        const lcMeta = {{ lc_meta   | tojson }};
+        /* ---------- data injected by Jinja ---------- */
+        const lcData = {{ lc_data | tojson }};   // {fast:{time,series}, full:{…}}
+        const lcMeta = {{ lc_meta | tojson }};   // {fast:{…}, full:{…}}
 
-        /* ----------  DOM handles  ---------- */
-        const errToggle = document.getElementById("err-toggle");
-        const seriesRadios = document.querySelectorAll('input[name="seriesType"]');
+        let currentRes = 'fast';                                  // default = binned
+        let currentSeries = Object.keys(lcData.fast.series)[0];      // first key
 
-        /* ----------  helper: (re)plot selected series  ---------- */
-        function plotSeries(key) {
-          /* base trace: time vs magnitude */
-          const traceOpts = {
-            y: [lcSeries[key]],
-            name: [key],
-            text: [lcMeta.FRAMEKEY || []],
-            customdata: [lcTime.map((_, i) => [
-              lcMeta.Z ? lcMeta.Z[i] : null,
-              lcMeta.HA ? lcMeta.HA[i] : null
-            ])]
-          };
+        /* ---------- helper: build Plotly trace ---------- */
+        function buildTrace(key) {
+          const timeArr = lcData[currentRes].time;
+          const magArr = lcData[currentRes].series[key];
 
+          /* ----- colour-by (optional) ----- */
+          const colourKey = document.getElementById("color-by")?.value;
+          const markerObj = (colourKey && lcMeta[currentRes][colourKey])
+            ? {
+              size: 3,
+              color: lcMeta[currentRes][colourKey],
+              colorscale: 'Viridis',
+              colorbar: { title: colourKey }
+            }
+            : { size: 3 };
 
-          /* choose matching ERR column (FITMAG0 → ERR0, EPD2 → ERR2, etc.) */
+          /* ----- error bars ----- */
+          const errVisible = document.getElementById("err-toggle")?.checked;
           const errKey = key.replace(/^(FITMAG|EPD|TFA)/, "ERR");
+          const errArr = lcMeta[currentRes][errKey];
 
-          if (errToggle.checked && lcMeta[errKey]) {
-            traceOpts.error_y = [{
-              type: "data",
-              array: lcMeta[errKey],
-              visible: true
-            }];
-          } else {
-            traceOpts.error_y = [null];      // hide error bars
-          }
-
-          Plotly.restyle('lc-plot', traceOpts);
+          return {
+            x: timeArr,
+            y: magArr,
+            mode: 'markers',
+            marker: markerObj,
+            name: key,
+            text: lcMeta[currentRes].FRAMEKEY || [],
+            customdata: timeArr.map((_, i) => [
+              lcMeta[currentRes].Z ? lcMeta[currentRes].Z[i] : null,   // airmass
+              lcMeta[currentRes].HA ? lcMeta[currentRes].HA[i] : null    // hour angle
+            ]),
+            hovertemplate:
+              'Time: %{x}<br>Mag: %{y:.4f}<br>%{text}<br>' +
+              'Airmass: %{customdata[0]:.2f}<br>' +
+              'HA: %{customdata[1]:.2f} h<extra></extra>',
+            error_y: (errVisible && errArr)
+              ? { type: "data", array: errArr, visible: true }
+              : undefined
+          };
         }
 
-        /* ----------  initial plot (default series = first key)  ---------- */
-        const defaultKey = Object.keys(lcSeries)[0];
-        Plotly.newPlot('lc-plot', [{
-          x: lcTime,
-          y: lcSeries[defaultKey],
-          mode: 'markers',
-          marker: { size: 3 },
-          name: defaultKey,
+        /* ---------- (re)plot selected series ---------- */
+        function plotSeries(key) {
+          currentSeries = key;
+          Plotly.react('lc-plot',
+            [buildTrace(key)],
+            {
+              margin: { l: 60, r: 20, t: 30, b: 40 },
+              xaxis: { title: 'Time (BJD / JD)' },
+              yaxis: { title: 'Magnitude (mag)', autorange: 'reversed' }
+            });
+        }
 
-          /* ---- enhanced hover ---- */
-          text: lcMeta.FRAMEKEY || [],
-          customdata: lcTime.map((_, i) => [
-            lcMeta.Z ? lcMeta.Z[i] : null,   // airmass
-            lcMeta.HA ? lcMeta.HA[i] : null    // hour angle
-          ]),
-          hovertemplate:
-            'Time: %{x}<br>' +
-            'Mag: %{y:.4f}<br>' +
-            '%{text}<br>' +
-            'Airmass: %{customdata[0]:.2f}<br>' +
-            'HA: %{customdata[1]:.2f} h' +
-            '<extra></extra>'
-        }], {
-          margin: { l: 60, r: 20, t: 30, b: 40 },
-          xaxis: { title: 'Time (BJD / JD)' },
-          yaxis: { title: 'Magnitude (mag)', autorange: 'reversed' }
-        });
+        /* ---------- initial plot ---------- */
+        plotSeries(currentSeries);
 
+        /* ---------- UI listeners ---------- */
+        document.querySelectorAll('input[name="seriesType"]').forEach(r =>
+          r.addEventListener('change', () => r.checked && plotSeries(r.value))
+        );
 
-        /* ----------  event listeners  ---------- */
-        seriesRadios.forEach(r => r.addEventListener('change', () => {
-          if (r.checked) plotSeries(r.value);
-        }));
+        document.getElementById('err-toggle')
+          ?.addEventListener('change', () => plotSeries(currentSeries));
 
-        errToggle.addEventListener('change', () => {
-          const active = document.querySelector('input[name="seriesType"]:checked').value;
-          plotSeries(active);
-        });
+        document.getElementById('color-by')
+          ?.addEventListener('change', () => plotSeries(currentSeries));
+
+        document.getElementById('res-toggle')
+          .addEventListener('change', e => {
+            currentRes = e.target.checked ? 'full' : 'fast';
+            plotSeries(currentSeries);
+          });
       </script>
 
 
@@ -803,7 +818,7 @@
       const viewer = document.getElementById("js9-viewer");
       if (!viewer) return;
 
-      // how much narrower you want the colour-bar:
+      // how much narrower you want the color-bar:
       const OFFSET = 40;                // px   ← adjust here  (or use a %)
 
       const w = Math.max(50, viewer.clientWidth - OFFSET);   // never below 50 px
